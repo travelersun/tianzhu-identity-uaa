@@ -29,6 +29,46 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <apacheLdapApiVersion>1.0.0</apacheLdapApiVersion>
+        <aspectJVersion>1.6.9</aspectJVersion>
+        <bcpkixVersion>1.57</bcpkixVersion>
+        <bcprovVersion>1.57</bcprovVersion>
+        <cglibVersion>2.2.2</cglibVersion>
+        <commonsHttpClientVersion>4.3.6</commonsHttpClientVersion>
+        <commonsLoggingVersion>1.2</commonsLoggingVersion>
+        <esapiVersion>2.1.0.1</esapiVersion>
+        <flywayVersion>4.0</flywayVersion>
+        <guavaVersion>19.0</guavaVersion>
+        <hamcrestVersion>1.3</hamcrestVersion>
+        <hibernateValidatorVersion>4.3.2.Final</hibernateValidatorVersion>
+        <hsqldbVersion>2.3.1</hsqldbVersion>
+        <jacksonVersion>2.8.9</jacksonVersion>
+        <javamailVersion>1.4.7</javamailVersion>
+        <jsonPathVersion>2.2.0</jsonPathVersion>
+        <junitVersion>4.12</junitVersion>
+        <mariaDBClientVersion>1.58</mariaDBClientVersion>
+        <mockitoVersion>2.7.19</mockitoVersion>
+        <passayVersion>1.2.0</passayVersion>
+        <postgresqlVersion>42.0.0</postgresqlVersion>
+        <mssqlVersion>6.1.0.jre8</mssqlVersion>
+        <scimSDKVersion>1.8.0</scimSDKVersion>
+        <servletVersion>3.1.0</servletVersion>
+        <slf4jVersion>1.7.24</slf4jVersion>
+        <snakeYamlVersion>1.18</snakeYamlVersion>
+        <springVersion>4.3.6.RELEASE</springVersion>
+        <springSecurityVersion>4.2.3.RELEASE</springSecurityVersion>
+        <springSecurityJwtVersion>1.0.8.RELEASE</springSecurityJwtVersion>
+        <springSecurityOAuthVersion>2.0.11.RELEASE</springSecurityOAuthVersion>
+        <springSecurityLdapVersion>2.1.0.RELEASE</springSecurityLdapVersion>
+        <springSecuritySamlVersion>1.0.2.RELEASE</springSecuritySamlVersion>
+        <springRetryVersion>1.1.5.RELEASE</springRetryVersion>
+        <thymeleafVersion>3.0.6.RELEASE</thymeleafVersion>
+        <thymeleafDialectVersion>2.2.2</thymeleafDialectVersion>
+        <thymeleafExtrasVersion>3.0.2.RELEASE</thymeleafExtrasVersion>
+        <tomcatVersion>8.5.16</tomcatVersion>
+        <tomcatJdbcPoolVersion>8.5.16</tomcatJdbcPoolVersion>
+        <tomcatContainerId>tomcat8x</tomcatContainerId>
+        <validationAPIVersion>1.0.0.GA</validationAPIVersion>
     </properties>
 
     <dependencyManagement>
@@ -110,6 +150,21 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>spring-xxx</id>
+            <name>Spring xxx</name>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>spring-yyy</id>
+            <name>Spring yyy</name>
+            <url>https://maven.java.net/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
     </repositories>
-
 </project>
