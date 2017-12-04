@@ -23,19 +23,19 @@
 
     <context:annotation-config />
 
-    <bean id="ldapGroupsMappedToScopesConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapGroupsMappedToScopesConfig" />
+    <bean id="ldapGroupsMappedToScopesConfig" class="com.tianzhu.identity.uaa.impl.config.LdapGroupsMappedToScopesConfig" />
 
-    <bean id="ldapGroupsAsScopesConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapGroupsAsScopesConfig" />
+    <bean id="ldapGroupsAsScopesConfig" class="com.tianzhu.identity.uaa.impl.config.LdapGroupsAsScopesConfig" />
 
-    <bean id="ldapGroupsNullConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapGroupsNullConfig" />
+    <bean id="ldapGroupsNullConfig" class="com.tianzhu.identity.uaa.impl.config.LdapGroupsNullConfig" />
 
-    <bean id="ldapSearchAndBindConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapSearchAndBindConfig" />
+    <bean id="ldapSearchAndBindConfig" class="com.tianzhu.identity.uaa.impl.config.LdapSearchAndBindConfig" />
 
-    <bean id="ldapSearchAndCompareConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapSearchAndCompareConfig" />
+    <bean id="ldapSearchAndCompareConfig" class="com.tianzhu.identity.uaa.impl.config.LdapSearchAndCompareConfig" />
 
-    <bean id="ldapSimpleBindConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapSimpleBindConfig" />
+    <bean id="ldapSimpleBindConfig" class="com.tianzhu.identity.uaa.impl.config.LdapSimpleBindConfig" />
 
-    <bean id="ldapIntegrationConfig" class="org.cloudfoundry.identity.uaa.impl.config.LdapIntegrationConfig" />
+    <bean id="ldapIntegrationConfig" class="com.tianzhu.identity.uaa.impl.config.LdapIntegrationConfig" />
 
     <security:authentication-manager id="ldapAuthenticationManager">
         <sec:authentication-provider ref="ldapAuthProvider"/>

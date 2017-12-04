@@ -151,7 +151,7 @@ spring_profiles: default
 #    searchBase: ''
 #    searchFilter: 'cn={0}'
 #    passwordAttributeName: userPassword
-#    passwordEncoder: org.cloudfoundry.identity.uaa.provider.ldap.DynamicPasswordComparator
+#    passwordEncoder: com.tianzhu.identity.uaa.provider.ldap.DynamicPasswordComparator
 #    localPasswordCompare: true
 
 #password:

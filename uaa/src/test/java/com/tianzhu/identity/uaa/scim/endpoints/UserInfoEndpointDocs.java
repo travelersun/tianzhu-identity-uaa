@@ -1,0 +1,93 @@
+package com.tianzhu.identity.uaa.scim.endpoints;
+
+import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
+import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
+import com.tianzhu.identity.uaa.test.SnippetUtils;
+import com.tianzhu.identity.uaa.oauth.token.ClaimConstants;
+import com.tianzhu.identity.uaa.scim.ScimUser;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.restdocs.payload.PayloadDocumentation;
+import org.springframework.restdocs.snippet.Snippet;
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import static com.tianzhu.identity.uaa.oauth.token.ClaimConstants.USER_ATTRIBUTES;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public class UserInfoEndpointDocs extends InjectedMockContextTest {
+    private RandomValueStringGenerator generator = new RandomValueStringGenerator();
+    private String clientId = generator.generate().toLowerCase();
+    private String clientSecret = generator.generate().toLowerCase();
+
+    private String adminToken;
+
+    private ScimUser user;
+    private String userName;
+
+    @Before
+    public void setUp() throws Exception {
+        adminToken = testClient.getClientCredentialsOAuthAccessToken("admin", "adminsecret", "clients.read clients.write clients.secret scim.read scim.write clients.admin");
+
+        String authorities = "scim.read,scim.write,password.write,oauth.approvals,scim.create,openid";
+        MockMvcUtils.utils().createClient(this.getMockMvc(), adminToken, clientId, clientSecret, Collections.singleton("oauth"), Arrays.asList("openid"), Arrays.asList("client_credentials", "password"), authorities);
+
+        userName = new RandomValueStringGenerator().generate() + "@test.org";
+        user = new ScimUser(null, userName, "PasswordResetUserFirst", "PasswordResetUserLast");
+        user.setPrimaryEmail(user.getUserName());
+        user.setPassword("secr3T");
+        ScimUser.PhoneNumber phoneNumber = new ScimUser.PhoneNumber("+15558880000");
+        user.setPhoneNumbers(Collections.singletonList(phoneNumber));
+        user = MockMvcUtils.utils().createUser(getMockMvc(), adminToken, user);
+    }
+
+    @Test
+    public void test_Get_UserInfo() throws Exception {
+
+        String userInfoToken = testClient.getUserOAuthAccessToken(
+            clientId,
+            clientSecret,
+            user.getUserName(),
+            "secr3T",
+            "openid"
+        );
+
+        Snippet requestHeaders = requestHeaders(
+            headerWithName("Authorization")
+                .description("Access token with openid required. If the `" + USER_ATTRIBUTES + "` scope is in the token, " +
+                                "the response object will contain custom attributes, if mapped to the external identity provider." +
+                                "If  the `roles` scope is present, the response object will contain group memberships  from the external identity provider."
+
+                )
+        );
+        Snippet responseFields = PayloadDocumentation.responseFields(
+            SnippetUtils.fieldWithPath("sub").description("Subject Identifier. A locally unique and never reassigned identifier within the Issuer for the End-User, which is intended to be consumed by the Client."),
+            SnippetUtils.fieldWithPath("user_id").description("Unique user identifier."),
+            SnippetUtils.fieldWithPath("email").description("The user's email address."),
+            SnippetUtils.fieldWithPath("user_name").description("User name of the user, typically an email address."),
+            SnippetUtils.fieldWithPath("given_name").description("The user's first name."),
+            SnippetUtils.fieldWithPath("family_name").description("The user's last name."),
+            SnippetUtils.fieldWithPath("name").description("A map with the user's first name and last name."),
+            SnippetUtils.fieldWithPath("phone_number").description("The user's phone number."),
+            SnippetUtils.fieldWithPath(ClaimConstants.PREVIOUS_LOGON_TIME).description("The unix epoch timestamp of 2nd to last successful user authentication.")
+        );
+
+        getMockMvc().perform(
+            get("/userinfo")
+                .header("Authorization", "Bearer " + userInfoToken))
+            .andExpect(status().isOk())
+            .andDo(document("{ClassName}/{methodName}",
+                            preprocessResponse(prettyPrint()),
+                            requestHeaders,
+                            responseFields));
+    }
+}
