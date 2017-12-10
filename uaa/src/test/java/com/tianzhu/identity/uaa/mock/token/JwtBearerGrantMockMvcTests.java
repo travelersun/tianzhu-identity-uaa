@@ -16,8 +16,8 @@
 package com.tianzhu.identity.uaa.mock.token;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
+import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
 import com.tianzhu.identity.uaa.oauth.KeyInfo;
 import com.tianzhu.identity.uaa.oauth.token.TokenConstants;
 import com.tianzhu.identity.uaa.provider.IdentityProvider;
@@ -34,11 +34,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;

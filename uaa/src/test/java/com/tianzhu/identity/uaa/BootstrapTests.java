@@ -12,7 +12,6 @@
  *******************************************************************************/
 package com.tianzhu.identity.uaa;
 
-import org.apache.commons.codec.binary.Base64;
 import com.tianzhu.identity.uaa.client.ClientAdminBootstrap;
 import com.tianzhu.identity.uaa.impl.config.YamlServletProfileInitializer;
 import com.tianzhu.identity.uaa.scim.ScimUserProvisioning;
@@ -20,11 +19,7 @@ import com.tianzhu.identity.uaa.test.TestUtils;
 import com.tianzhu.identity.uaa.zone.BrandingInformation.Banner;
 import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
 import org.flywaydb.core.Flyway;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
@@ -40,10 +35,10 @@ import org.springframework.web.context.support.AbstractRefreshableWebApplication
 import javax.servlet.RequestDispatcher;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.util.EventListener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Dave Syer
@@ -171,6 +166,11 @@ public class BootstrapTests {
 
             public String getVirtualServerName() {
                 return null;
+            }
+
+            @Override
+            public <Type extends EventListener> void addListener(Type t) {
+                //no op
             }
         };
         context.setServletContext(servletContext);

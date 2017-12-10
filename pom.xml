@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.7.RELEASE</version>
+        <version>1.5.8.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -29,11 +29,21 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <tomcat.version>8.5.23</tomcat.version>
         <apacheLdapApiVersion>1.0.0</apacheLdapApiVersion>
         <aspectJVersion>1.6.9</aspectJVersion>
         <bcpkixVersion>1.57</bcpkixVersion>
         <bcprovVersion>1.57</bcprovVersion>
         <cglibVersion>2.2.2</cglibVersion>
+        <commonsBeanUtilsVersion>1.9.3</commonsBeanUtilsVersion>
+        <commonsFileuploadVersion>1.3.3</commonsFileuploadVersion>
+        <mssqlVersion>6.2.2.jre8</mssqlVersion>
+        <velocityVersion>2.0</velocityVersion>
+        <xalanVersion>2.7.2</xalanVersion>
+        <zxingVersion>3.3.1</zxingVersion>
+        <antisamyVersion>1.5.7</antisamyVersion>
+        <openSamlVersion>2.6.6</openSamlVersion>
+        <googleauthVersion>1.1.2</googleauthVersion>
         <commonsHttpClientVersion>4.3.6</commonsHttpClientVersion>
         <commonsLoggingVersion>1.2</commonsLoggingVersion>
         <esapiVersion>2.1.0.1</esapiVersion>

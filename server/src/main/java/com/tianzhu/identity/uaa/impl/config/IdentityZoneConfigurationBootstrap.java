@@ -14,8 +14,15 @@ package com.tianzhu.identity.uaa.impl.config;
 
 import com.tianzhu.identity.uaa.login.Prompt;
 import com.tianzhu.identity.uaa.saml.SamlKey;
+import com.tianzhu.identity.uaa.zone.ClientSecretPolicy;
 import com.tianzhu.identity.uaa.util.JsonUtils;
-import com.tianzhu.identity.uaa.zone.*;
+import com.tianzhu.identity.uaa.zone.BrandingInformation;
+import com.tianzhu.identity.uaa.zone.IdentityZone;
+import com.tianzhu.identity.uaa.zone.IdentityZoneConfiguration;
+import com.tianzhu.identity.uaa.zone.IdentityZoneProvisioning;
+import com.tianzhu.identity.uaa.zone.IdentityZoneValidator;
+import com.tianzhu.identity.uaa.zone.InvalidIdentityZoneDetailsException;
+import com.tianzhu.identity.uaa.zone.TokenPolicy;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Collection;
@@ -45,6 +52,7 @@ public class IdentityZoneConfigurationBootstrap implements InitializingBean {
     private String samlSpPrivateKey;
     private String samlSpPrivateKeyPassphrase;
     private String samlSpCertificate;
+    private boolean disableSamlInResponseToCheck = false;
 
     private Map<String, Map<String, String>> samlKeys;
     private String activeKeyId;
@@ -76,6 +84,7 @@ public class IdentityZoneConfigurationBootstrap implements InitializingBean {
         definition.getSamlConfig().setCertificate(samlSpCertificate);
         definition.getSamlConfig().setPrivateKey(samlSpPrivateKey);
         definition.getSamlConfig().setPrivateKeyPassword(samlSpPrivateKeyPassphrase);
+        definition.getSamlConfig().setDisableInResponseToCheck(disableSamlInResponseToCheck);
         definition.setIdpDiscoveryEnabled(idpDiscoveryEnabled);
         definition.setAccountChooserEnabled(accountChooserEnabled);
 
@@ -218,4 +227,11 @@ public class IdentityZoneConfigurationBootstrap implements InitializingBean {
         this.defaultUserGroups = defaultUserGroups;
     }
 
+    public boolean isDisableSamlInResponseToCheck() {
+        return disableSamlInResponseToCheck;
+    }
+
+    public void setDisableSamlInResponseToCheck(boolean disableSamlInResponseToCheck) {
+        this.disableSamlInResponseToCheck = disableSamlInResponseToCheck;
+    }
 }

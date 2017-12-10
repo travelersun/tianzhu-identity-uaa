@@ -6,6 +6,8 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static com.tianzhu.identity.uaa.zone.IdentityZoneValidator.Mode.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 
 public class GeneralIdentityZoneValidatorTests {
@@ -23,7 +25,7 @@ public class GeneralIdentityZoneValidatorTests {
             reset(zoneConfigurationValidator);
             when(zoneConfigurationValidator.validate(any(), any())).thenReturn(config);
             validator.validate(zone, mode);
-            verify(zoneConfigurationValidator, times(1)).validate(same(config), same(mode));
+            verify(zoneConfigurationValidator, times(1)).validate(same(zone), same(mode));
         }
     }
 }

@@ -26,8 +26,12 @@ import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
 import com.tianzhu.identity.uaa.zone.MultitenancyFixture;
 import com.tianzhu.identity.uaa.zone.ZoneManagementScopes;
 import com.tianzhu.identity.uaa.zone.event.IdentityZoneModifiedEvent;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 
 import java.sql.Timestamp;
@@ -38,10 +42,10 @@ import java.util.stream.Collectors;
 
 import static com.tianzhu.identity.uaa.scim.jdbc.JdbcScimGroupMembershipManager.MEMBERSHIP_FIELDS;
 import static com.tianzhu.identity.uaa.scim.jdbc.JdbcScimGroupMembershipManager.MEMBERSHIP_TABLE;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.springframework.util.StringUtils.hasText;
 
 public class JdbcScimGroupProvisioningTests extends JdbcTestBase {
@@ -59,11 +63,14 @@ public class JdbcScimGroupProvisioningTests extends JdbcTestBase {
     private RandomValueStringGenerator generator = new RandomValueStringGenerator();
     private String zoneId;
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Before
     public void initJdbcScimGroupProvisioningTests() {
         zoneId = IdentityZoneHolder.get().getId();
         memberships = new JdbcScimGroupMembershipManager(jdbcTemplate);
-        dao = new JdbcScimGroupProvisioning(jdbcTemplate, new JdbcPagingListFactory(jdbcTemplate, limitSqlAdapter));
+        dao = spy(new JdbcScimGroupProvisioning(jdbcTemplate, new JdbcPagingListFactory(jdbcTemplate, limitSqlAdapter)));
         memberships.setScimGroupProvisioning(dao);
         users = mock(ScimUserProvisioning.class);
         memberships.setScimUserProvisioning(users);
@@ -74,6 +81,12 @@ public class JdbcScimGroupProvisioningTests extends JdbcTestBase {
 
         validateGroupCount(3);
     }
+
+    @After
+    public void cleanSpy() throws Exception {
+        reset(dao);
+    }
+
 
     private void validateGroupCount(int expected) {
         existingGroupCount = jdbcTemplate.queryForObject("select count(id) from groups where identity_zone_id='" + zoneId + "'", Integer.class);
@@ -97,6 +110,51 @@ public class JdbcScimGroupProvisioningTests extends JdbcTestBase {
         if (hasText(description)) {
             assertEquals(description, group.getDescription());
         }
+    }
+
+    @Test
+    public void create_or_get_tries_get_first() throws Exception {
+        reset(dao);
+        dao.createOrGet(new ScimGroup("openid"), IdentityZone.getUaa().getId());
+        verify(dao, times(1)).getByName("openid", IdentityZone.getUaa().getId());
+        verify(dao, never()).createAndIgnoreDuplicate(anyString(), anyString());
+    }
+
+    @Test
+    public void create_or_get_tries_get_first_but_creates_it() throws Exception {
+        reset(dao);
+        String name = new RandomValueStringGenerator().generate().toLowerCase();
+        dao.createOrGet(new ScimGroup(name), IdentityZone.getUaa().getId());
+        verify(dao, times(2)).getByName(name, IdentityZone.getUaa().getId());
+        verify(dao, times(1)).createAndIgnoreDuplicate(name, IdentityZone.getUaa().getId());
+    }
+
+    @Test
+    public void get_by_name() throws Exception {
+        assertNotNull(dao.getByName("openid", IdentityZone.getUaa().getId()));
+        assertNotNull(dao.getByName("uaa.user", IdentityZone.getUaa().getId()));
+        assertNotNull(dao.getByName("uaa.admin", IdentityZone.getUaa().getId()));
+    }
+
+    @Test
+    public void get_by_invalid_name() throws Exception {
+        exception.expect(IncorrectResultSizeDataAccessException.class);
+        exception.expectMessage("Invalid result size found for");
+        assertNotNull(dao.getByName("invalid-group-name", IdentityZone.getUaa().getId()));
+    }
+
+    @Test
+    public void get_by_empty_name() throws Exception {
+        exception.expect(IncorrectResultSizeDataAccessException.class);
+        exception.expectMessage("group name must contain text");
+        assertNotNull(dao.getByName("", IdentityZone.getUaa().getId()));
+    }
+
+    @Test
+    public void get_by_null_name() throws Exception {
+        exception.expect(IncorrectResultSizeDataAccessException.class);
+        exception.expectMessage("group name must contain text");
+        assertNotNull(dao.getByName("", IdentityZone.getUaa().getId()));
     }
 
     @Test

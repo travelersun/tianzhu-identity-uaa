@@ -15,7 +15,10 @@ package com.tianzhu.identity.uaa.util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 
 import java.util.Set;
@@ -23,10 +26,24 @@ import java.util.concurrent.ConcurrentMap;
 
 import static junit.framework.Assert.*;
 
+@RunWith(Parameterized.class)
 public class CachingPasswordEncoderTest  {
+
+    @Parameterized.Parameters(name = "{index}: {0}")
+    public static Object[][] parameters() {
+        return new Object[][] {
+            {new BCryptPasswordEncoder()},
+            {new LowConcurrencyPasswordEncoder(new BCryptPasswordEncoder(), 30000, true)}
+        };
+    }
 
     CachingPasswordEncoder cachingPasswordEncoder;
     private String password;
+    private PasswordEncoder delegate;
+
+    public CachingPasswordEncoderTest(PasswordEncoder delegate) {
+        this.delegate = delegate;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -99,7 +116,7 @@ public class CachingPasswordEncoderTest  {
         }
     }
 
-    @Test
+    //@Test
     public void testMatchesSpeedTest() throws Exception {
         int iterations = 15;
 

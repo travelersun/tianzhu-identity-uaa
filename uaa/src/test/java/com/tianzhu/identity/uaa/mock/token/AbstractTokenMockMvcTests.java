@@ -14,9 +14,8 @@
 
 package com.tianzhu.identity.uaa.mock.token;
 
-import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
-import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
+import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.oauth.UaaTokenServices;
 import com.tianzhu.identity.uaa.oauth.client.ClientConstants;
 import com.tianzhu.identity.uaa.oauth.token.RevocableTokenProvisioning;
@@ -31,25 +30,13 @@ import com.tianzhu.identity.uaa.scim.exception.MemberAlreadyExistsException;
 import com.tianzhu.identity.uaa.scim.jdbc.JdbcScimGroupMembershipManager;
 import com.tianzhu.identity.uaa.scim.jdbc.JdbcScimGroupProvisioning;
 import com.tianzhu.identity.uaa.scim.jdbc.JdbcScimUserProvisioning;
-import com.tianzhu.identity.uaa.zone.ClientServicesExtension;
-import com.tianzhu.identity.uaa.zone.IdentityZone;
-import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
-import com.tianzhu.identity.uaa.zone.IdentityZoneProvisioning;
-import com.tianzhu.identity.uaa.zone.UserConfig;
+import com.tianzhu.identity.uaa.zone.*;
 import org.junit.Before;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.getClientCredentialsOAuthAccessToken;
 import static org.junit.Assert.assertNull;
@@ -89,7 +76,7 @@ public abstract class AbstractTokenMockMvcTests extends InjectedMockContextTest 
         IdentityZoneHolder.clear();
 
         adminToken =
-            MockMvcUtils.getClientCredentialsOAuthAccessToken(
+            getClientCredentialsOAuthAccessToken(
                 getMockMvc(),
                 "admin",
                 "adminsecret",

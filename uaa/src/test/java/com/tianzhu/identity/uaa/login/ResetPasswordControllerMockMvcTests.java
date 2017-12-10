@@ -12,8 +12,6 @@
  *******************************************************************************/
 package com.tianzhu.identity.uaa.login;
 
-import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
-import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
 import com.tianzhu.identity.uaa.account.UaaResetPasswordService;
 import com.tianzhu.identity.uaa.authentication.UaaPrincipal;
 import com.tianzhu.identity.uaa.codestore.ExpiringCode;
@@ -21,6 +19,9 @@ import com.tianzhu.identity.uaa.codestore.ExpiringCodeStore;
 import com.tianzhu.identity.uaa.codestore.JdbcExpiringCodeStore;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
 import com.tianzhu.identity.uaa.message.util.FakeJavaMailSender;
+import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
+import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
+import com.tianzhu.identity.uaa.mock.util.MockMvcUtils.PredictableGenerator;
 import com.tianzhu.identity.uaa.provider.IdentityProvider;
 import com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning;
 import com.tianzhu.identity.uaa.provider.PasswordPolicy;
@@ -60,14 +61,8 @@ import java.util.regex.Pattern;
 import static com.tianzhu.identity.uaa.account.UaaResetPasswordService.FORGOT_PASSWORD_INTENT_PREFIX;
 import static com.tianzhu.identity.uaa.constants.OriginKeys.UAA;
 import static com.tianzhu.identity.uaa.web.UaaSavedRequestAwareAuthenticationSuccessHandler.SAVED_REQUEST_SESSION_ATTRIBUTE;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -237,7 +232,7 @@ public class ResetPasswordControllerMockMvcTests extends InjectedMockContextTest
         user = MockMvcUtils.utils().createUser(getMockMvc(), token, user);
 
 
-        MockMvcUtils.PredictableGenerator generator = new MockMvcUtils.PredictableGenerator();
+        PredictableGenerator generator = new PredictableGenerator();
         JdbcExpiringCodeStore store = getWebApplicationContext().getBean(JdbcExpiringCodeStore.class);
         store.setGenerator(generator);
         JdbcTemplate template = getWebApplicationContext().getBean(JdbcTemplate.class);
@@ -287,7 +282,7 @@ public class ResetPasswordControllerMockMvcTests extends InjectedMockContextTest
         };
         session.setAttribute(SAVED_REQUEST_SESSION_ATTRIBUTE, savedRequest);
 
-        MockMvcUtils.PredictableGenerator generator = new MockMvcUtils.PredictableGenerator();
+        PredictableGenerator generator = new PredictableGenerator();
         JdbcExpiringCodeStore store = getWebApplicationContext().getBean(JdbcExpiringCodeStore.class);
         store.setGenerator(generator);
 

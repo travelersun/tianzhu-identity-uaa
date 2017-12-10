@@ -18,18 +18,7 @@ import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.mock.util.ApacheDSHelper;
 import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
 import com.tianzhu.identity.uaa.mock.util.MockMvcUtils.IdentityZoneCreationResult;
-import com.tianzhu.identity.uaa.provider.AbstractXOAuthIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.IdentityProvider;
-import com.tianzhu.identity.uaa.provider.IdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.IdentityProviderStatus;
-import com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.LdapIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.LockoutPolicy;
-import com.tianzhu.identity.uaa.provider.OIDCIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.PasswordPolicy;
-import com.tianzhu.identity.uaa.provider.RawXOAuthIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.UaaIdentityProviderDefinition;
+import com.tianzhu.identity.uaa.provider.*;
 import com.tianzhu.identity.uaa.provider.ldap.DynamicPasswordComparator;
 import com.tianzhu.identity.uaa.provider.saml.BootstrapSamlIdentityProviderConfiguratorTests;
 import com.tianzhu.identity.uaa.test.SnippetUtils;
@@ -38,11 +27,7 @@ import com.tianzhu.identity.uaa.zone.IdentityZone;
 import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
 import com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter;
 import com.tianzhu.identity.uaa.zone.MultitenancyFixture;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.snippet.Attributes;
@@ -57,19 +42,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.tianzhu.identity.uaa.constants.OriginKeys.LDAP;
-import static com.tianzhu.identity.uaa.constants.OriginKeys.OAUTH20;
-import static com.tianzhu.identity.uaa.constants.OriginKeys.OIDC10;
-import static com.tianzhu.identity.uaa.constants.OriginKeys.SAML;
+import static com.tianzhu.identity.uaa.constants.OriginKeys.*;
 import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.CookieCsrfPostProcessor.cookieCsrf;
 import static com.tianzhu.identity.uaa.provider.LdapIdentityProviderDefinition.MAIL;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.EMAIL_ATTRIBUTE_NAME;
+import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.*;
 import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.ExternalGroupMappingMode.EXPLICITLY_MAPPED;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.FAMILY_NAME_ATTRIBUTE_NAME;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.GIVEN_NAME_ATTRIBUTE_NAME;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.GROUP_ATTRIBUTE_NAME;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.PHONE_NUMBER_ATTRIBUTE_NAME;
-import static com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition.USER_ATTRIBUTE_PREFIX;
 import static com.tianzhu.identity.uaa.test.SnippetUtils.fieldWithPath;
 import static com.tianzhu.identity.uaa.test.SnippetUtils.parameterWithName;
 import static com.tianzhu.identity.uaa.util.JsonUtils.serializeExcludingProperties;
@@ -77,19 +54,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
-import static org.springframework.restdocs.payload.JsonFieldType.BOOLEAN;
-import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
-import static org.springframework.restdocs.payload.JsonFieldType.OBJECT;
-import static org.springframework.restdocs.payload.JsonFieldType.STRING;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.JsonFieldType.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
@@ -431,7 +398,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
             preprocessResponse(prettyPrint()),
             requestHeaders(
                 headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
             ),
             commonRequestParams,
             requestFields,
@@ -459,7 +426,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
             preprocessResponse(prettyPrint()),
             requestHeaders(
                 headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
             ),
             commonRequestParams,
             requestFields,
@@ -527,7 +494,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
             preprocessResponse(prettyPrint()),
             requestHeaders(
                 headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
             ),
             commonRequestParams,
             requestFields,
@@ -599,7 +566,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                                      preprocessResponse(prettyPrint()),
                                      requestHeaders(
                                          headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                                         headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                                         headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
                                      ),
                                      commonRequestParams,
                                      requestFields,
@@ -733,7 +700,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                                      preprocessResponse(prettyPrint()),
                                      requestHeaders(
                                          headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                                         headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                                         headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
                                      ),
                                      commonRequestParams,
                                      requestFields,
@@ -781,7 +748,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                 preprocessResponse(prettyPrint()),
                 requestHeaders(
                     headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` or `idps.read` (only in the same zone that you are a user of)"),
-                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` scope against the default UAA zone.").optional()
+                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` scope against the default UAA zone.").optional()
                 ),
                 commonRequestParams,
                 responseFields));
@@ -808,7 +775,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                 ),
                 requestHeaders(
                     headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` or `idps.read` (only in the same zone that you are a user of)"),
-                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` scope against the default UAA zone.").optional()
+                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `zones.<zone id>.idps.read` or `uaa.admin` scope against the default UAA zone.").optional()
                 ),
                 commonRequestParams,
                 responseFields(getCommonProviderFieldsAnyType())));
@@ -867,7 +834,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                 ),
                 requestHeaders(
                     headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
                 ),
                 commonRequestParams,
                 requestFields,
@@ -900,7 +867,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                         ),
                         requestHeaders(
                                 headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                                headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
                         ),
                         requestFields,
                         responseFields));
@@ -930,7 +897,7 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
                 ),
                 requestHeaders(
                     headerWithName("Authorization").description("Bearer token containing `zones.<zone id>.admin` or `uaa.admin` or `idps.write` (only in the same zone that you are a user of)"),
-                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
+                    headerWithName("X-Identity-Zone-Id").description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional()
                 ),
                 commonRequestParams,
                 responseFields(getCommonProviderFieldsAnyType())));
@@ -977,12 +944,12 @@ public class IdentityProviderEndpointsDocs extends InjectedMockContextTest {
 
     private Map<String, Object> getAttributeMappingMap() {
         Map<String, Object> attributeMappings = new HashMap();
-        attributeMappings.put(EMAIL_ATTRIBUTE_NAME, "emailAddress");
-        attributeMappings.put(GIVEN_NAME_ATTRIBUTE_NAME, "first_name");
-        attributeMappings.put(FAMILY_NAME_ATTRIBUTE_NAME, "last_name");
-        attributeMappings.put(PHONE_NUMBER_ATTRIBUTE_NAME, "telephone");
-        attributeMappings.put(GROUP_ATTRIBUTE_NAME, new String[] {"roles"});
-        attributeMappings.put(USER_ATTRIBUTE_PREFIX+"department", "department");
+        attributeMappings.put(ExternalIdentityProviderDefinition.EMAIL_ATTRIBUTE_NAME, "emailAddress");
+        attributeMappings.put(ExternalIdentityProviderDefinition.GIVEN_NAME_ATTRIBUTE_NAME, "first_name");
+        attributeMappings.put(ExternalIdentityProviderDefinition.FAMILY_NAME_ATTRIBUTE_NAME, "last_name");
+        attributeMappings.put(ExternalIdentityProviderDefinition.PHONE_NUMBER_ATTRIBUTE_NAME, "telephone");
+        attributeMappings.put(ExternalIdentityProviderDefinition.GROUP_ATTRIBUTE_NAME, new String[] {"roles"});
+        attributeMappings.put(ExternalIdentityProviderDefinition.USER_ATTRIBUTE_PREFIX+"department", "department");
         return attributeMappings;
     }
 }

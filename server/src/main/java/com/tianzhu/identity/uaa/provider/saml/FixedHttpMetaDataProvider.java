@@ -44,7 +44,7 @@ public class  FixedHttpMetaDataProvider extends HTTPMetadataProvider {
                                                           String metadataURL,
                                                           RestTemplate template,
                                                           UrlContentCache cache) throws MetadataProviderException {
-        SimpleHttpConnectionManager connectionManager = new SimpleHttpConnectionManager(true);
+        SimpleHttpConnectionManager connectionManager = new SimpleHttpConnectionManager();
         connectionManager.getParams().setDefaults(params);
         HttpClient client = new HttpClient(connectionManager);
         return new FixedHttpMetaDataProvider(backgroundTaskTimer, client, metadataURL, template, cache);

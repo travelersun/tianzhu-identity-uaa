@@ -16,25 +16,31 @@
 package com.tianzhu.identity.uaa.mock.limited;
 
 import com.tianzhu.identity.uaa.mock.token.UserTokenMockMvcTests;
-import com.tianzhu.identity.uaa.web.LimitedModeUaaFilter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
+
+import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.*;
+
 public class LimitedModeUserTokenMockMvcTests extends UserTokenMockMvcTests {
-    private boolean original;
+    private File existingStatusFile;
+    private File statusFile;
 
     @Before
-    public void setup () throws Exception {
-        LimitedModeUaaFilter bean = getWebApplicationContext().getBean(LimitedModeUaaFilter.class);
-        original = bean.isEnabled();
-        bean.setEnabled(true);
+    @Override
+    public void setUpContext() throws Exception {
+        super.setUpContext();
+        existingStatusFile = getLimitedModeStatusFile(getWebApplicationContext());
+        statusFile = setLimitedModeStatusFile(getWebApplicationContext());
     }
 
+
     @After
-    public void teardown() throws Exception {
-        getWebApplicationContext().getBean(LimitedModeUaaFilter.class).setEnabled(original);
+    public void tearDown() throws Exception {
+        resetLimitedModeStatusFile(getWebApplicationContext(), existingStatusFile);
     }
 
     @Test

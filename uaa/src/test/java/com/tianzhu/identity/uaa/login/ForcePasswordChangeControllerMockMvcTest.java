@@ -4,11 +4,7 @@ import com.tianzhu.identity.uaa.account.UserAccountStatus;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
 import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
-import com.tianzhu.identity.uaa.provider.IdentityProvider;
-import com.tianzhu.identity.uaa.provider.IdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.PasswordPolicy;
-import com.tianzhu.identity.uaa.provider.UaaIdentityProviderDefinition;
+import com.tianzhu.identity.uaa.provider.*;
 import com.tianzhu.identity.uaa.scim.ScimUser;
 import com.tianzhu.identity.uaa.security.web.CookieBasedCsrfTokenRepository;
 import com.tianzhu.identity.uaa.util.JsonUtils;
@@ -28,11 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 public class ForcePasswordChangeControllerMockMvcTest extends InjectedMockContextTest {
     private ScimUser user;

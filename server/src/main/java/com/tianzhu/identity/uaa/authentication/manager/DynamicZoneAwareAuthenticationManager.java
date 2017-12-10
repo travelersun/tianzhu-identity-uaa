@@ -14,6 +14,7 @@ package com.tianzhu.identity.uaa.authentication.manager;
 
 import com.tianzhu.identity.uaa.authentication.AccountNotVerifiedException;
 import com.tianzhu.identity.uaa.authentication.AuthenticationPolicyRejectionException;
+import com.tianzhu.identity.uaa.authentication.MfaAuthenticationRequiredException;
 import com.tianzhu.identity.uaa.authentication.PasswordChangeRequiredException;
 import com.tianzhu.identity.uaa.authentication.manager.ChainedAuthenticationManager.AuthenticationManagerConfiguration;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
@@ -72,7 +73,7 @@ public class DynamicZoneAwareAuthenticationManager implements AuthenticationMana
 
         if (uaaProvider.isActive()) {
             AuthenticationManagerConfiguration uaaConfig = new AuthenticationManagerConfiguration(internalUaaAuthenticationManager, null);
-            uaaConfig.setStopIf(AccountNotVerifiedException.class, AuthenticationPolicyRejectionException.class, PasswordChangeRequiredException.class);
+            uaaConfig.setStopIf(AccountNotVerifiedException.class, AuthenticationPolicyRejectionException.class, PasswordChangeRequiredException.class, MfaAuthenticationRequiredException.class);
             delegates.add(uaaConfig);
         }
 

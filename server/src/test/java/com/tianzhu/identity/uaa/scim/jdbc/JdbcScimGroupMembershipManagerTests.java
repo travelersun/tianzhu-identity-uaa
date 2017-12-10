@@ -31,7 +31,6 @@ import com.tianzhu.identity.uaa.zone.MultitenancyFixture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
@@ -47,6 +46,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class JdbcScimGroupMembershipManagerTests extends JdbcTestBase {
@@ -160,6 +160,21 @@ public class JdbcScimGroupMembershipManagerTests extends JdbcTestBase {
     @After
     public void cleanupDataSource() throws Exception {
         IdentityZoneHolder.clear();
+    }
+
+    @Test
+    public void default_groups_are_cached() throws Exception {
+        IdentityZone zone = MultitenancyFixture.identityZone("id", "subdomain");
+        List<String> defaultGroups = Arrays.asList("g1", "g2", "g3");
+        zone.getConfig().getUserConfig().setDefaultGroups(defaultGroups);
+        IdentityZoneHolder.set(zone);
+        JdbcScimGroupProvisioning spy = spy(gdao);
+        dao.setScimGroupProvisioning(spy);
+        defaultGroups.stream().forEach(g -> dao.createOrGetGroup(g, zone.getId()));
+        defaultGroups.stream().forEach(g -> verify(spy, times(1)).createAndIgnoreDuplicate(eq(g), eq(zone.getId())));
+        reset(spy);
+        defaultGroups.stream().forEach(g -> dao.createOrGetGroup(g, zone.getId()));
+        verifyZeroInteractions(spy);
     }
 
     @Test
@@ -502,7 +517,7 @@ public class JdbcScimGroupMembershipManagerTests extends JdbcTestBase {
         validateUserGroups("m1", "test1");
         validateUserGroups("m2", "test2", "test1.i");
 
-        JdbcScimGroupMembershipManager spy = Mockito.spy(dao);
+        JdbcScimGroupMembershipManager spy = spy(dao);
 
         ScimGroupMember g2 = new ScimGroupMember("g2", ScimGroupMember.Type.GROUP); // update role member->admin
         ScimGroupMember m3 = new ScimGroupMember("m3", ScimGroupMember.Type.USER); // new member

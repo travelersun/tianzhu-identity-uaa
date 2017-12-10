@@ -89,7 +89,7 @@ public class CheckTokenEndpointMockMvcTest extends AbstractTokenMockMvcTests {
     public void check_token_get() throws Exception {
         check_token(get("/check_token"), status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'GET' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;GET&#39; not supported"));
 
     }
 
@@ -97,7 +97,7 @@ public class CheckTokenEndpointMockMvcTest extends AbstractTokenMockMvcTests {
     public void check_token_put() throws Exception {
         check_token(put("/check_token"), status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'PUT' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;PUT&#39; not supported"));
 
     }
 
@@ -116,7 +116,7 @@ public class CheckTokenEndpointMockMvcTest extends AbstractTokenMockMvcTests {
     public void check_token_delete() throws Exception {
         check_token(MockMvcRequestBuilders.delete("/check_token"),status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'DELETE' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;DELETE&#39; not supported"));
     }
 
     @Test

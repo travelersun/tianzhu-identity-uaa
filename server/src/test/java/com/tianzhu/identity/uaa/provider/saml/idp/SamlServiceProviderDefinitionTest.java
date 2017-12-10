@@ -3,8 +3,12 @@ package com.tianzhu.identity.uaa.provider.saml.idp;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.tianzhu.identity.uaa.provider.saml.idp.SamlServiceProviderDefinition.MetadataLocation.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class SamlServiceProviderDefinitionTest {
 
@@ -17,6 +21,20 @@ public class SamlServiceProviderDefinitionTest {
             .setNameID("nameID")
             .setMetadataTrustCheck(true)
             .build();
+    }
+
+    @Test
+    public void no_static_attributes_by_default() throws Exception {
+        assertNotNull(definition.getStaticCustomAttributes());
+        assertEquals(0, definition.getStaticCustomAttributes().size());
+        Map<String,Object> staticAttributes = new HashMap<>();
+        staticAttributes.put("string-value", "string");
+        staticAttributes.put("list-value", Arrays.asList("string"));
+        definition.setStaticCustomAttributes(staticAttributes);
+        assertNotNull(definition.getStaticCustomAttributes());
+        assertEquals(2, definition.getStaticCustomAttributes().size());
+        assertSame(staticAttributes, definition.getStaticCustomAttributes());
+
     }
 
     @Test

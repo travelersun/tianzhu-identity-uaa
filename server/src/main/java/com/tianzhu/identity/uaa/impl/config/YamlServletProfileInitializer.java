@@ -21,6 +21,7 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.util.InMemoryResource;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.util.Log4jConfigurer;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -71,6 +72,10 @@ public class YamlServletProfileInitializer implements ApplicationContextInitiali
     public void initialize(ConfigurableWebApplicationContext applicationContext) {
 
         ServletContext servletContext = applicationContext.getServletContext();
+
+        HttpSessionEventPublisher publisher = new HttpSessionEventPublisher();
+        servletContext.addListener(publisher);
+
         WebApplicationContextUtils.initServletPropertySources(applicationContext.getEnvironment().getPropertySources(),
                         servletContext, applicationContext.getServletConfig());
 
@@ -136,7 +141,7 @@ public class YamlServletProfileInitializer implements ApplicationContextInitiali
     }
 
     private List<Resource> getResource(ServletContext servletContext, ConfigurableWebApplicationContext applicationContext,
-                                       String locations) {
+                    String locations) {
         List<Resource> resources = new LinkedList<>();
         String[] configFileLocations = locations == null ? DEFAULT_PROFILE_CONFIG_FILE_LOCATIONS : StringUtils
                         .commaDelimitedListToStringArray(locations);

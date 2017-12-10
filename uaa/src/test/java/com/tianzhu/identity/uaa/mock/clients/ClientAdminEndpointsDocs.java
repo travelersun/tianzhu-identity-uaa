@@ -1,6 +1,5 @@
 package com.tianzhu.identity.uaa.mock.clients;
 
-import com.tianzhu.identity.uaa.test.SnippetUtils;
 import org.apache.commons.lang.ArrayUtils;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
 import com.tianzhu.identity.uaa.oauth.client.ClientConstants;
@@ -11,8 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.payload.PayloadDocumentation;
-import org.springframework.restdocs.request.RequestDocumentation;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
@@ -20,15 +17,10 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.tianzhu.identity.uaa.oauth.client.SecretChangeRequest.ChangeMode.ADD;
-import static com.tianzhu.identity.uaa.oauth.client.SecretChangeRequest.ChangeMode.DELETE;
-import static com.tianzhu.identity.uaa.oauth.client.SecretChangeRequest.ChangeMode.UPDATE;
+import static com.tianzhu.identity.uaa.oauth.client.SecretChangeRequest.ChangeMode.*;
+import static com.tianzhu.identity.uaa.test.SnippetUtils.*;
 import static com.tianzhu.identity.uaa.util.JsonUtils.serializeExcludingProperties;
 import static com.tianzhu.identity.uaa.util.JsonUtils.writeValueAsString;
 import static com.tianzhu.identity.uaa.util.UaaMapUtils.entry;
@@ -54,38 +46,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ClientAdminEndpointsDocs extends AdminClientCreator {
     private String clientAdminToken;
 
-    private static final FieldDescriptor clientSecretField = SnippetUtils.fieldWithPath("client_secret").constrained("Required if the client allows `authorization_code` or `client_credentials` grant type").type(STRING).description("A secret string used for authenticating as this client. To support secret rotation this can be space delimited string of two secrets.");
-    private static final FieldDescriptor actionField = SnippetUtils.fieldWithPath("action").constrained("Always required.").description("Set to `secret` to change client secret, `delete` to delete the client or `add` to add the client");
+    private static final FieldDescriptor clientSecretField = fieldWithPath("client_secret").constrained("Required if the client allows `authorization_code` or `client_credentials` grant type").type(STRING).description("A secret string used for authenticating as this client. To support secret rotation this can be space delimited string of two secrets.");
+    private static final FieldDescriptor actionField = fieldWithPath("action").constrained("Always required.").description("Set to `secret` to change client secret, `delete` to delete the client or `add` to add the client");
     private static final HeaderDescriptor authorizationHeader = headerWithName("Authorization").description("Bearer token containing `clients.write`, `clients.admin` or `zones.{zone.id}.admin`");
-    private static final HeaderDescriptor IDENTITY_ZONE_ID_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).optional().description("If using a `zones.<zoneId>.admin scope/token, indicates what zone this request goes to by supplying a zone_id.");
-    private static final HeaderDescriptor IDENTITY_ZONE_SUBDOMAIN_HEADER = headerWithName(IdentityZoneSwitchingFilter.SUBDOMAIN_HEADER).optional().description("If using a `zones.<zoneId>.admin scope/token, indicates what zone this request goes to by supplying a subdomain.");
+    private static final HeaderDescriptor IDENTITY_ZONE_ID_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).optional().description("If using a `zones.<zoneId>.admin` scope/token, indicates what zone this request goes to by supplying a zone_id.");
+    private static final HeaderDescriptor IDENTITY_ZONE_SUBDOMAIN_HEADER = headerWithName(IdentityZoneSwitchingFilter.SUBDOMAIN_HEADER).optional().description("If using a `zones.<zoneId>.admin` scope/token, indicates what zone this request goes to by supplying a subdomain.");
 
-    private static final FieldDescriptor lastModifiedField = SnippetUtils.fieldWithPath("lastModified").description("Epoch of the moment the client information was last altered");
+    private static final FieldDescriptor lastModifiedField = fieldWithPath("lastModified").description("Epoch of the moment the client information was last altered");
     private static final String clientIdDescription = "Client identifier, unique within identity zone";
 
     private static final FieldDescriptor[] idempotentFields = new FieldDescriptor[]{
-        SnippetUtils.fieldWithPath("client_id").required().description(clientIdDescription),
-        SnippetUtils.fieldWithPath("authorized_grant_types").required().description("List of grant types that can be used to obtain a token with this client. Can include `authorization_code`, `password`, `implicit`, and/or `client_credentials`."),
-        SnippetUtils.fieldWithPath("redirect_uri").required().type(ARRAY).description("Allowed URI pattern for redirect during authorization. Wildcard patterns can be specified using the Ant-style pattern. Null/Empty value is forbidden."),
-        SnippetUtils.fieldWithPath("scope").optional("uaa.none").type(ARRAY).description("Scopes allowed for the client"),
-        SnippetUtils.fieldWithPath("resource_ids").optional(Collections.emptySet()).type(ARRAY).description("Resources the client is allowed access to"),
-        SnippetUtils.fieldWithPath("authorities").optional("uaa.none").type(ARRAY).description("Scopes which the client is able to grant when creating a client"),
-        SnippetUtils.fieldWithPath("autoapprove").optional(Collections.emptySet()).type(Arrays.asList(BOOLEAN, ARRAY)).description("Scopes that do not require user approval"),
-        SnippetUtils.fieldWithPath("access_token_validity").optional(null).type(NUMBER).description("time in seconds to access token expiration after it is issued"),
-        SnippetUtils.fieldWithPath("refresh_token_validity").optional(null).type(NUMBER).description("time in seconds to refresh token expiration after it is issued"),
-        SnippetUtils.fieldWithPath(ClientConstants.ALLOWED_PROVIDERS).optional(null).type(ARRAY).description("A list of origin keys (alias) for identity providers the client is limited to. Null implies any identity provider is allowed."),
-        SnippetUtils.fieldWithPath(ClientConstants.CLIENT_NAME).optional(null).type(STRING).description("A human readable name for the client"),
-        SnippetUtils.fieldWithPath(ClientConstants.TOKEN_SALT).optional(null).type(STRING).description("A random string used to generate the client's revokation key. Change this value to revoke all active tokens for the client"),
-        SnippetUtils.fieldWithPath(ClientConstants.CREATED_WITH).optional(null).type(STRING).description("What scope the bearer token had when client was created"),
-        SnippetUtils.fieldWithPath(ClientConstants.APPROVALS_DELETED).optional(null).type(BOOLEAN).description("Were the approvals deleted for the client, and an audit event sent"),
-        SnippetUtils.fieldWithPath(ClientConstants.REQUIRED_USER_GROUPS).optional(null).type(ARRAY).description("A list of group names. If a user doesn't belong to all the required groups, the user will not be authenticated and no tokens will be issued to this client for that user. If this field is not set, authentication and token issuance will proceed normally."),
+        fieldWithPath("client_id").required().description(clientIdDescription),
+        fieldWithPath("authorized_grant_types").required().description("List of grant types that can be used to obtain a token with this client. Can include `authorization_code`, `password`, `implicit`, and/or `client_credentials`."),
+        fieldWithPath("redirect_uri").required().type(ARRAY).description("Allowed URI pattern for redirect during authorization. Wildcard patterns can be specified using the Ant-style pattern. Null/Empty value is forbidden."),
+        fieldWithPath("scope").optional("uaa.none").type(ARRAY).description("Scopes allowed for the client"),
+        fieldWithPath("resource_ids").optional(Collections.emptySet()).type(ARRAY).description("Resources the client is allowed access to"),
+        fieldWithPath("authorities").optional("uaa.none").type(ARRAY).description("Scopes which the client is able to grant when creating a client"),
+        fieldWithPath("autoapprove").optional(Collections.emptySet()).type(Arrays.asList(BOOLEAN, ARRAY)).description("Scopes that do not require user approval"),
+        fieldWithPath("access_token_validity").optional(null).type(NUMBER).description("time in seconds to access token expiration after it is issued"),
+        fieldWithPath("refresh_token_validity").optional(null).type(NUMBER).description("time in seconds to refresh token expiration after it is issued"),
+        fieldWithPath(ClientConstants.ALLOWED_PROVIDERS).optional(null).type(ARRAY).description("A list of origin keys (alias) for identity providers the client is limited to. Null implies any identity provider is allowed."),
+        fieldWithPath(ClientConstants.CLIENT_NAME).optional(null).type(STRING).description("A human readable name for the client"),
+        fieldWithPath(ClientConstants.TOKEN_SALT).optional(null).type(STRING).description("A random string used to generate the client's revokation key. Change this value to revoke all active tokens for the client"),
+        fieldWithPath(ClientConstants.CREATED_WITH).optional(null).type(STRING).description("What scope the bearer token had when client was created"),
+        fieldWithPath(ClientConstants.APPROVALS_DELETED).optional(null).type(BOOLEAN).description("Were the approvals deleted for the client, and an audit event sent"),
+        fieldWithPath(ClientConstants.REQUIRED_USER_GROUPS).optional(null).type(ARRAY).description("A list of group names. If a user doesn't belong to all the required groups, the user will not be authenticated and no tokens will be issued to this client for that user. If this field is not set, authentication and token issuance will proceed normally."),
     };
 
     private static final FieldDescriptor[] secretChangeFields = new FieldDescriptor[]{
-        SnippetUtils.fieldWithPath("clientId").required().description(clientIdDescription),
-        SnippetUtils.fieldWithPath("oldSecret").constrained("Optional if authenticated as an admin client. Required otherwise.").type(STRING).description("A valid client secret before updating"),
-        SnippetUtils.fieldWithPath("secret").required().description("The new client secret"),
-        SnippetUtils.fieldWithPath("changeMode").optional(UPDATE).type(STRING).description("If change mode is set to `"+ADD+"`, the new `secret` will be added to the existing one and if the change mode is set to `"+DELETE+"`, the old secret will be deleted to support secret rotation. Currently only two client secrets are supported at any given time.")
+        fieldWithPath("clientId").required().description(clientIdDescription),
+        fieldWithPath("oldSecret").constrained("Optional if authenticated as an admin client. Required otherwise.").type(STRING).description("A valid client secret before updating"),
+        fieldWithPath("secret").required().description("The new client secret"),
+        fieldWithPath("changeMode").optional(UPDATE).type(STRING).description("If change mode is set to `"+ADD+"`, the new `secret` will be added to the existing one and if the change mode is set to `"+DELETE+"`, the old secret will be deleted to support secret rotation. Currently only two client secrets are supported at any given time.")
     };
 
     @Before
@@ -138,22 +130,22 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
             .param("count", "10")
             .accept(APPLICATION_JSON));
 
-        Snippet requestParameters = RequestDocumentation.requestParameters(
-            SnippetUtils.parameterWithName("filter").optional("client_id pr").type(STRING).description("SCIM filter for querying clients"),
-            SnippetUtils.parameterWithName("sortBy").optional("client_id").type(STRING).description("Field to sort results by"),
-            SnippetUtils.parameterWithName("sortOrder").optional("ascending").type(STRING).description("Sort results in `ascending` or `descending` order"),
-            SnippetUtils.parameterWithName("startIndex").optional("1").type(NUMBER).description("Index of the first result on which to begin the page"),
-            SnippetUtils.parameterWithName("count").optional("100").type(NUMBER).description("Number of results per page")
+        Snippet requestParameters = requestParameters(
+            parameterWithName("filter").optional("client_id pr").type(STRING).description("SCIM filter for querying clients"),
+            parameterWithName("sortBy").optional("client_id").type(STRING).description("Field to sort results by"),
+            parameterWithName("sortOrder").optional("ascending").type(STRING).description("Sort results in `ascending` or `descending` order"),
+            parameterWithName("startIndex").optional("1").type(NUMBER).description("Index of the first result on which to begin the page"),
+            parameterWithName("count").optional("100").type(NUMBER).description("Number of results per page")
         );
 
         Snippet responseFields = responseFields(
             (FieldDescriptor[]) ArrayUtils.addAll(
-                SnippetUtils.subFields("resources[]", (FieldDescriptor[]) ArrayUtils.addAll(idempotentFields, new FieldDescriptor[]{lastModifiedField})),
+                subFields("resources[]", (FieldDescriptor[]) ArrayUtils.addAll(idempotentFields, new FieldDescriptor[]{lastModifiedField})),
                 new FieldDescriptor[]{
-                    SnippetUtils.fieldWithPath("startIndex").description("Index of the first result on this page"),
-                    SnippetUtils.fieldWithPath("itemsPerPage").description("Number of results per page"),
-                    SnippetUtils.fieldWithPath("totalResults").description("Total number of results that matched the query"),
-                    SnippetUtils.fieldWithPath("schemas").description("`[\"urn:scim:schemas:core:1.0\"]`")
+                    fieldWithPath("startIndex").description("Index of the first result on this page"),
+                    fieldWithPath("itemsPerPage").description("Number of results per page"),
+                    fieldWithPath("totalResults").description("Total number of results that matched the query"),
+                    fieldWithPath("schemas").description("`[\"urn:scim:schemas:core:1.0\"]`")
                 }
             )
         );
@@ -180,8 +172,8 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
         );
 
         resultActions.andDo(document("{ClassName}/{methodName}", preprocessResponse(prettyPrint()),
-            RequestDocumentation.pathParameters(
-                SnippetUtils.parameterWithName("client_id").required().description(clientIdDescription)
+            pathParameters(
+                parameterWithName("client_id").required().description(clientIdDescription)
             ),
             requestHeaders(
                 headerWithName("Authorization").description("Bearer token containing `clients.read`, `clients.admin` or `zones.{zone.id}.admin`"),
@@ -225,8 +217,8 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
         );
 
         resultActions.andDo(document("{ClassName}/{methodName}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-                RequestDocumentation.pathParameters(
-                    SnippetUtils.parameterWithName("client_id").required().description(clientIdDescription)
+                pathParameters(
+                    parameterWithName("client_id").required().description(clientIdDescription)
                 ),
                 requestHeaders(
                     authorizationHeader,
@@ -253,8 +245,8 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
             .andExpect(status().isOk());
 
         resultActions.andDo(document("{ClassName}/{methodName}", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
-                RequestDocumentation.pathParameters(
-                    SnippetUtils.parameterWithName("client_id").required().description(clientIdDescription)
+                pathParameters(
+                    parameterWithName("client_id").required().description(clientIdDescription)
                 ),
                 requestHeaders(
                     authorizationHeader,
@@ -275,8 +267,8 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
             .accept(APPLICATION_JSON));
 
         resultActions.andDo(document("{ClassName}/{methodName}", preprocessResponse(prettyPrint()),
-                RequestDocumentation.pathParameters(
-                    SnippetUtils.parameterWithName("client_id").required().description(clientIdDescription)
+                pathParameters(
+                    parameterWithName("client_id").required().description(clientIdDescription)
                 ),
                 requestHeaders(
                     authorizationHeader,
@@ -305,23 +297,23 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
             .header("Authorization", "Bearer " + clientAdminToken)
             .accept(APPLICATION_JSON));
 
-        FieldDescriptor[] fieldsNoSecret = SnippetUtils.subFields("[]", idempotentFields);
+        FieldDescriptor[] fieldsNoSecret = subFields("[]", idempotentFields);
         FieldDescriptor[] fieldsWithSecret = (FieldDescriptor[]) ArrayUtils.addAll(
             fieldsNoSecret,
-            SnippetUtils.subFields("[]", clientSecretField)
+            subFields("[]", clientSecretField)
         );
         FieldDescriptor[] fieldsWithSecretAndAction = (FieldDescriptor[]) ArrayUtils.addAll(
             fieldsWithSecret,
-            SnippetUtils.subFields("[]", actionField)
+            subFields("[]", actionField)
         );
 
         Snippet responseFields = responseFields((FieldDescriptor[]) ArrayUtils.addAll(
             fieldsNoSecret,
-            SnippetUtils.subFields("[]", lastModifiedField)
+            subFields("[]", lastModifiedField)
         ));
         Snippet responseFieldsWithAction = responseFields((FieldDescriptor[]) ArrayUtils.addAll(
             fieldsNoSecret,
-            SnippetUtils.subFields("[]", lastModifiedField, actionField)
+            subFields("[]", lastModifiedField, actionField)
         ));
         createResultActions
             .andExpect(status().isCreated())
@@ -387,12 +379,12 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
                         IDENTITY_ZONE_ID_HEADER,
                         IDENTITY_ZONE_SUBDOMAIN_HEADER
                     ),
-                    PayloadDocumentation.requestFields(SnippetUtils.subFields("[]", secretChangeFields)),
+                    requestFields(subFields("[]", secretChangeFields)),
                     responseFields((FieldDescriptor[]) ArrayUtils.addAll(
                         fieldsNoSecret,
-                        SnippetUtils.subFields("[]",
+                        subFields("[]",
                             lastModifiedField,
-                            SnippetUtils.fieldWithPath("approvals_deleted").description("Indicates whether the approvals associated with the client were deleted as a result of this action")
+                            fieldWithPath("approvals_deleted").description("Indicates whether the approvals associated with the client were deleted as a result of this action")
                         )
                     ))
                 )
@@ -447,10 +439,10 @@ public class ClientAdminEndpointsDocs extends AdminClientCreator {
             .andExpect(status().isOk())
             .andDo(document("{ClassName}/deleteClientTx", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()),
                     requestHeaders(authorizationHeader, IDENTITY_ZONE_ID_HEADER, IDENTITY_ZONE_SUBDOMAIN_HEADER),
-                    PayloadDocumentation.requestFields(SnippetUtils.fieldWithPath("[].client_id").required().description(clientIdDescription)),
+                    requestFields(fieldWithPath("[].client_id").required().description(clientIdDescription)),
                     responseFields((FieldDescriptor[]) ArrayUtils.addAll(
                         fieldsNoSecret,
-                        SnippetUtils.subFields("[]", lastModifiedField, SnippetUtils.fieldWithPath("approvals_deleted").description("Indicates whether the approvals associated with the client were deleted as a result of this action"))
+                        subFields("[]", lastModifiedField, fieldWithPath("approvals_deleted").description("Indicates whether the approvals associated with the client were deleted as a result of this action"))
                     ))
                 )
             );

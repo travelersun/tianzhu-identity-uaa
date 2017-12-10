@@ -17,17 +17,19 @@ import com.timgroup.statsd.StatsDClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.lang.management.ManagementFactory;
+import java.util.Calendar;
+import java.util.Date;
 
 @SpringBootApplication
 @EnableScheduling
-public class Application extends SpringBootServletInitializer {
+public class Application extends SpringBootServletInitializer implements SchedulingConfigurer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -53,24 +55,22 @@ public class Application extends SpringBootServletInitializer {
         return new MetricsUtils();
     }
 
-   /* @Bean
-    public ServletRegistrationBean testServletRegistration() {
-        ServletRegistrationBean registration = new ServletRegistrationBean(new TestServlet());
-        registration.addUrlMappings("/hello");
-        return registration;
-    }*/
-
-    @Bean
-    public FilterRegistrationBean testFilterRegistration() {
-        FilterRegistrationBean registration = new FilterRegistrationBean(new Log4jContextInitializer());
-        registration.setName("log4jFilter");
-        registration.addUrlPatterns("/*");
-        return registration;
-    }
-
-    @Bean
-    public ServletListenerRegistrationBean<Log4jContextInitializer> testListenerRegistration(){
-        ServletListenerRegistrationBean<Log4jContextInitializer> registration = new ServletListenerRegistrationBean<Log4jContextInitializer>(new Log4jContextInitializer());
-        return registration;
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        taskRegistrar.addTriggerTask(() -> statsDClientWrapper(metricsUtils(), statsDClient()).enableNotification(),
+                triggerContext -> {
+                    if (statsDClientWrapper(metricsUtils(), statsDClient()).isNotificationEnabled()) {
+                        return null;
+                    } else {
+                        Calendar calendar = Calendar.getInstance();
+                        if (triggerContext.lastCompletionTime() != null) {
+                            calendar.setTime(triggerContext.lastCompletionTime());
+                        } else {
+                            calendar.setTime(new Date());
+                        }
+                        calendar.add(Calendar.SECOND, 5);
+                        return calendar.getTime();
+                    }
+                });
     }
 }

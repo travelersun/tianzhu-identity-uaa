@@ -65,7 +65,7 @@ public class JdbcRevocableTokenProvisioningTest extends JdbcTestBase {
     @Before
     public void createData() {
         JdbcTemplate template = spy(jdbcTemplate);
-        dao = spy(new JdbcRevocableTokenProvisioning(template));
+        dao = spy(new JdbcRevocableTokenProvisioning(template, limitSqlAdapter));
         createData("test-token-id", "test-user-id", "test-client-id");
     }
 

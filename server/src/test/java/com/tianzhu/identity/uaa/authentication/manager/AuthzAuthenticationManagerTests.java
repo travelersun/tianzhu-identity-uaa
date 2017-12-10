@@ -27,6 +27,7 @@ import com.tianzhu.identity.uaa.user.UaaUser;
 import com.tianzhu.identity.uaa.user.UaaUserDatabase;
 import com.tianzhu.identity.uaa.user.UaaUserPrototype;
 import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -83,6 +84,11 @@ public class AuthzAuthenticationManagerTests {
         mgr = new AuthzAuthenticationManager(db, encoder, providerProvisioning);
         mgr.setApplicationEventPublisher(publisher);
         mgr.setOrigin(OriginKeys.UAA);
+    }
+
+    @After
+    public void cleanUp() throws Exception {
+        IdentityZoneHolder.get().getConfig().getMfaConfig().setEnabled(false);
     }
 
     private UaaUserPrototype getPrototype() {
@@ -317,6 +323,14 @@ public class AuthzAuthenticationManagerTests {
         verify(publisher).publishEvent(ArgumentMatchers.isA(AuthenticationFailureLockedEvent.class));
     }
 
+    @Test
+    public void testExceptionThrownWhenMfaRequired() {
+        IdentityZoneHolder.get().getConfig().getMfaConfig().setEnabled(true);
+        when(db.retrieveUserByName("auser", OriginKeys.UAA)).thenReturn(user);
+
+        exception.expect(MfaAuthenticationRequiredException.class);
+        Authentication authentication = mgr.authenticate(createAuthRequest("auser", "password"));
+    }
     AuthzAuthenticationRequest createAuthRequest(String username, String password) {
         Map<String, String> userdata = new HashMap<String, String>();
         userdata.put("username", username);

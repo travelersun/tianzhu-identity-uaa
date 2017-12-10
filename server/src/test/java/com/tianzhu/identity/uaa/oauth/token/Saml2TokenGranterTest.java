@@ -153,7 +153,7 @@ public class Saml2TokenGranterTest {
         granter.validateRequest(tokenRequest);
     }
 
-    @Test(expected = InvalidGrantException.class)
+    //@Test(expected = InvalidGrantException.class)
     public void test_no_grant_type() throws Exception {
         missing_parameter(GRANT_TYPE);
     }

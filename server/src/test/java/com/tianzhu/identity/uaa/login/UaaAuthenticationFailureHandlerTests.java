@@ -15,6 +15,7 @@
 
 package com.tianzhu.identity.uaa.login;
 
+import com.tianzhu.identity.uaa.authentication.MfaAuthenticationRequiredException;
 import com.tianzhu.identity.uaa.authentication.PasswordChangeRequiredException;
 import com.tianzhu.identity.uaa.authentication.UaaAuthentication;
 import org.junit.Before;
@@ -31,6 +32,7 @@ import javax.servlet.http.Cookie;
 import java.io.IOException;
 
 import static com.tianzhu.identity.uaa.login.ForcePasswordChangeController.FORCE_PASSWORD_EXPIRED_USER;
+import static com.tianzhu.identity.uaa.login.TotpEndpoint.MFA_VALIDATE_USER;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -82,6 +84,18 @@ public class UaaAuthenticationFailureHandlerTests {
         assertEquals(uaaAuthentication, request.getSession().getAttribute(FORCE_PASSWORD_EXPIRED_USER));
         validateCookie();
         assertEquals("/force_password_change", response.getRedirectedUrl());
+    }
+
+    @Test
+    public void testExceptionThrownWhenMFARequired() throws Exception {
+        MfaAuthenticationRequiredException exception = mock(MfaAuthenticationRequiredException.class);
+        UaaAuthentication uaaAuthentication = mock(UaaAuthentication.class);
+        when(exception.getAuthentication()).thenReturn(uaaAuthentication);
+        uaaAuthenticationFailureHandler.onAuthenticationFailure(request, response, exception);
+
+        assertNotNull(request.getSession().getAttribute(MFA_VALIDATE_USER));
+        assertEquals(uaaAuthentication, request.getSession().getAttribute(MFA_VALIDATE_USER));
+        assertEquals("/login/mfa/register", response.getRedirectedUrl());
     }
 
     private void validateCookie() {

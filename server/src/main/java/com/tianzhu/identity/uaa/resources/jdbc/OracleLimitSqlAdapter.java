@@ -21,4 +21,8 @@ public class OracleLimitSqlAdapter implements LimitSqlAdapter {
                         + ") where rnum >= " + index;
     }
 
+    @Override
+    public String getDeleteExpiredQuery(String tablename, String primaryKeyColumn, String expiresColumn, int maxRows) {
+        throw new UnsupportedOperationException();
+    }
 }

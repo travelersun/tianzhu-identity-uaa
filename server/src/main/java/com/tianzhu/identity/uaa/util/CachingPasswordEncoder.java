@@ -14,8 +14,8 @@ package com.tianzhu.identity.uaa.util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.codec.Utf8;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
@@ -58,7 +58,7 @@ public class CachingPasswordEncoder implements PasswordEncoder {
 
     private volatile Cache<CharSequence, Set<String>> cache = null;
 
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     public CachingPasswordEncoder() throws NoSuchAlgorithmException {
         messageDigest = MessageDigest.getInstance("SHA-256");
@@ -73,18 +73,18 @@ public class CachingPasswordEncoder implements PasswordEncoder {
         return passwordEncoder;
     }
 
-    public void setPasswordEncoder(BCryptPasswordEncoder passwordEncoder) {
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public String encode(CharSequence rawPassword) {
-        //encode we always use the Bcrypt mechanism
+    public String encode(CharSequence rawPassword) throws AuthenticationException {
+        //we always use the Bcrypt mechanism, we never store repeated information
         return getPasswordEncoder().encode(rawPassword);
     }
 
     @Override
-    public boolean matches(CharSequence rawPassword, String encodedPassword) {
+    public boolean matches(CharSequence rawPassword, String encodedPassword) throws AuthenticationException {
         if (isEnabled()) {
             String cacheKey = cacheEncode(rawPassword);
             return internalMatches(cacheKey, rawPassword, encodedPassword);

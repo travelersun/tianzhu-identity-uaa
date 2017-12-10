@@ -35,19 +35,21 @@ public class RecognizeFailureDispatcherServletTest {
 
 
     private MockHttpServletRequest request;
+    private RecognizeFailureDispatcherServlet servlet;
+    private MockHttpServletResponse response;
+    private DispatcherServlet delegate;
 
     @Before
     public void setup() {
-
+        request = new MockHttpServletRequest();
+        servlet = new RecognizeFailureDispatcherServlet();
+        response = new MockHttpServletResponse();
+        delegate = mock(DispatcherServlet.class);
     }
 
     @Test
     public void service_when_failure() throws Exception {
-        DispatcherServlet delegate = mock(DispatcherServlet.class);
         Mockito.doThrow(new RuntimeException("some app error", new SQLException("db error"))).when(delegate).init(ArgumentMatchers.anyObject());
-        request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        RecognizeFailureDispatcherServlet servlet = new RecognizeFailureDispatcherServlet();
         servlet.setDelegate(delegate);
         servlet.init(mock(ServletConfig.class));
         servlet.service(request, response);
@@ -61,9 +63,6 @@ public class RecognizeFailureDispatcherServletTest {
     public void service_when_ok() throws Exception {
         DispatcherServlet delegate = mock(DispatcherServlet.class);
         Mockito.doNothing().when(delegate).init(ArgumentMatchers.anyObject());
-        request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        RecognizeFailureDispatcherServlet servlet = new RecognizeFailureDispatcherServlet();
         servlet.setDelegate(delegate);
         servlet.init(mock(ServletConfig.class));
         servlet.service(request, response);

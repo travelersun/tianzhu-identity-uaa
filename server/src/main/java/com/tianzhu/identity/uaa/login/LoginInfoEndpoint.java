@@ -218,8 +218,8 @@ public class LoginInfoEndpoint {
 
     @RequestMapping(value = {"/login"}, headers = "Accept=text/html, */*")
     public String loginForHtml(
-            Model model, Principal principal, HttpServletRequest request,
-            @RequestHeader(value = "Accept", required = false) List<MediaType> headers)
+        Model model, Principal principal, HttpServletRequest request,
+        @RequestHeader(value = "Accept", required = false) List<MediaType> headers)
         throws HttpMediaTypeNotAcceptableException
     {
         boolean match = headers == null || headers.stream().anyMatch(mediaType -> mediaType.isCompatibleWith(MediaType.TEXT_HTML));

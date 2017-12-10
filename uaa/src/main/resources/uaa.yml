@@ -167,6 +167,8 @@ spring_profiles: default
 scim:
   users:
     - sre@vmware.com|apassword|scim.write,scim.read,openid
+    - marissa|koala|openid
+    - testbootuser|password|openid
   groups:
     zones.read: Read identity zones
     zones.write: Create and update identity zones
@@ -591,6 +593,25 @@ uaa:
     url: http://localhost:8080/uaa/approvals
   login:
     url: http://localhost:8080/uaa/authenticate
+  limitedFunctionality:
+    enabled: false
+    whitelist:
+      endpoints:
+        - /oauth/authorize/**
+        - /oauth/token/**
+        - /check_token/**
+        - /login/**
+        - /login.do
+        - /logout/**
+        - /logout.do
+        - /saml/**
+        - /autologin/**
+        - /authenticate/**
+        - /idp_discovery/**
+      methods:
+        - GET
+        - HEAD
+        - OPTIONS
 
 # Google Analytics
 #analytics:

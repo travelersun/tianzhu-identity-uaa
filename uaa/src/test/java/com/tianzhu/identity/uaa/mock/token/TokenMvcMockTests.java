@@ -28,25 +28,10 @@ import com.tianzhu.identity.uaa.oauth.UaaTokenServices;
 import com.tianzhu.identity.uaa.oauth.client.ClientConstants;
 import com.tianzhu.identity.uaa.oauth.jwt.Jwt;
 import com.tianzhu.identity.uaa.oauth.jwt.JwtHelper;
-import com.tianzhu.identity.uaa.oauth.token.ClaimConstants;
-import com.tianzhu.identity.uaa.oauth.token.Claims;
-import com.tianzhu.identity.uaa.oauth.token.CompositeAccessToken;
-import com.tianzhu.identity.uaa.oauth.token.JdbcRevocableTokenProvisioning;
-import com.tianzhu.identity.uaa.oauth.token.RevocableToken;
-import com.tianzhu.identity.uaa.oauth.token.RevocableTokenProvisioning;
-import com.tianzhu.identity.uaa.oauth.token.UaaTokenEndpoint;
-import com.tianzhu.identity.uaa.provider.IdentityProvider;
-import com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.PasswordPolicy;
-import com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.UaaIdentityProviderDefinition;
+import com.tianzhu.identity.uaa.oauth.token.*;
+import com.tianzhu.identity.uaa.provider.*;
 import com.tianzhu.identity.uaa.provider.saml.idp.SamlTestUtils;
-import com.tianzhu.identity.uaa.scim.ScimGroup;
-import com.tianzhu.identity.uaa.scim.ScimGroupMember;
-import com.tianzhu.identity.uaa.scim.ScimGroupMembershipManager;
-import com.tianzhu.identity.uaa.scim.ScimGroupProvisioning;
-import com.tianzhu.identity.uaa.scim.ScimUser;
-import com.tianzhu.identity.uaa.scim.ScimUserProvisioning;
+import com.tianzhu.identity.uaa.scim.*;
 import com.tianzhu.identity.uaa.scim.bootstrap.ScimUserBootstrap;
 import com.tianzhu.identity.uaa.user.UaaAuthority;
 import com.tianzhu.identity.uaa.user.UaaUser;
@@ -54,17 +39,8 @@ import com.tianzhu.identity.uaa.user.UaaUserDatabase;
 import com.tianzhu.identity.uaa.util.JsonUtils;
 import com.tianzhu.identity.uaa.util.SetServerNameRequestPostProcessor;
 import com.tianzhu.identity.uaa.util.UaaUrlUtils;
-import com.tianzhu.identity.uaa.zone.ClientServicesExtension;
-import com.tianzhu.identity.uaa.zone.IdentityZone;
-import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
-import com.tianzhu.identity.uaa.zone.IdentityZoneProvisioning;
-import com.tianzhu.identity.uaa.zone.UserConfig;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.tianzhu.identity.uaa.zone.*;
+import org.junit.*;
 import org.opensaml.xml.ConfigurationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -102,80 +78,35 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static java.util.Collections.emptySet;
 import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.CookieCsrfPostProcessor.cookieCsrf;
-import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.getClientCredentialsOAuthAccessToken;
-import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.getUserOAuthAccessToken;
-import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.setDisableInternalAuth;
+import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.*;
 import static com.tianzhu.identity.uaa.oauth.TokenTestSupport.AUTHORIZATION_CODE;
 import static com.tianzhu.identity.uaa.oauth.TokenTestSupport.PASSWORD;
 import static com.tianzhu.identity.uaa.oauth.client.ClientConstants.REQUIRED_USER_GROUPS;
 import static com.tianzhu.identity.uaa.oauth.token.ClaimConstants.CLIENT_ID;
 import static com.tianzhu.identity.uaa.oauth.token.ClaimConstants.JTI;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.GRANT_TYPE_SAML2_BEARER;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.ID_TOKEN_HINT_PROMPT;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.ID_TOKEN_HINT_PROMPT_NONE;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.OPAQUE;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.REFRESH_TOKEN_SUFFIX;
-import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.REQUEST_TOKEN_FORMAT;
+import static com.tianzhu.identity.uaa.oauth.token.TokenConstants.*;
 import static com.tianzhu.identity.uaa.provider.saml.idp.SamlTestUtils.createLocalSamlIdpDefinition;
 import static com.tianzhu.identity.uaa.web.UaaSavedRequestAwareAuthenticationSuccessHandler.FORM_REDIRECT_PARAMETER;
 import static com.tianzhu.identity.uaa.web.UaaSavedRequestAwareAuthenticationSuccessHandler.SAVED_REQUEST_SESSION_ATTRIBUTE;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.StringStartsWith.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-import static org.springframework.http.HttpHeaders.HOST;
+import static org.junit.Assert.*;
+import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.oauth2.common.OAuth2AccessToken.ACCESS_TOKEN;
 import static org.springframework.security.oauth2.common.OAuth2AccessToken.REFRESH_TOKEN;
-import static org.springframework.security.oauth2.common.util.OAuth2Utils.GRANT_TYPE;
-import static org.springframework.security.oauth2.common.util.OAuth2Utils.RESPONSE_TYPE;
-import static org.springframework.security.oauth2.common.util.OAuth2Utils.SCOPE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.security.oauth2.common.util.OAuth2Utils.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
 
@@ -223,7 +154,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
         getWebApplicationContext().getBean(UaaTokenEndpoint.class).setAllowQueryString(false);
         try_token_with_non_post(get("/oauth/token"), status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'GET' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;GET&#39; not supported"));
 
     }
 
@@ -231,7 +162,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
     public void token_endpoint_put() throws Exception {
         try_token_with_non_post(put("/oauth/token"), status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'PUT' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;PUT&#39; not supported"));
 
     }
 
@@ -239,7 +170,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
     public void token_endpoint_delete() throws Exception {
         try_token_with_non_post(delete("/oauth/token"), status().isMethodNotAllowed())
             .andExpect(jsonPath("$.error").value("method_not_allowed"))
-            .andExpect(jsonPath("$.error_description").value("Request method 'DELETE' not supported"));
+            .andExpect(jsonPath("$.error_description").value("Request method &#39;DELETE&#39; not supported"));
 
     }
 
@@ -317,7 +248,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
         clientDetailsService.updateClientDetails(clientDetails);
 
         result = doRefreshGrant(refreshToken, clientId, SECRET, status().isUnauthorized());
-        assertThat(result.getResponse().getContentAsString(), containsString("User does not meet the client's required group criteria."));
+        assertThat(result.getResponse().getContentAsString(), containsString("User does not meet the client&#39;s required group criteria."));
     }
 
     @Test
@@ -399,7 +330,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
             new TypeReference<Map<String, Object>>() {}
         );
 
-        assertThat((String)errorResponse.get("error_description"), containsString("User does not meet the client's required group criteria."));
+        assertThat((String)errorResponse.get("error_description"), containsString("User does not meet the client&#39;s required group criteria."));
     }
 
     @Test
@@ -419,7 +350,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
             new TypeReference<Map<String, Object>>() {}
         );
 
-        assertThat((String)errorResponse.get("error_description"), containsString("User does not meet the client's required group criteria."));
+        assertThat((String)errorResponse.get("error_description"), containsString("User does not meet the client&#39;s required group criteria."));
     }
 
     @Test
@@ -2555,7 +2486,7 @@ public class TokenMvcMockTests extends AbstractTokenMockMvcTests {
             .andDo(print())
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value("invalid_scope"))
-            .andExpect(jsonPath("$.error_description").value("User does not meet the client's required group criteria."))
+            .andExpect(jsonPath("$.error_description").value("User does not meet the client&#39;s required group criteria."))
             .andExpect(header().string(CONTENT_TYPE, "application/json;charset=UTF-8"));
     }
 

@@ -51,6 +51,7 @@ database:
   #password:
 
 delete:
+  expirationRunTime: 3000
   clients:
     - client-should-not-exist-1
     - client-should-not-exist-2
@@ -187,6 +188,16 @@ login:
         relyingPartySecret: secret
         showLinkText: true
         type: oidc1.0
+  mfa:
+    providers:
+      mfaprovider1:
+        type: google-authenticator
+        config:
+          providerDescription: all-properties-set-description
+          digits: 6
+          duration: 30
+          algorithm: SHA256
+          issuer: google.com
 
   prompt:
     password:

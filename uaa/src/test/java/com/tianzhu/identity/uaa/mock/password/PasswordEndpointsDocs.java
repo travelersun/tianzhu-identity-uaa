@@ -15,17 +15,16 @@ package com.tianzhu.identity.uaa.mock.password;
 
 import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
-import com.tianzhu.identity.uaa.test.SnippetUtils;
 import com.tianzhu.identity.uaa.scim.ScimUser;
 import com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.restdocs.headers.HeaderDocumentation;
-import org.springframework.restdocs.request.RequestDocumentation;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import static com.tianzhu.identity.uaa.test.SnippetUtils.headerWithName;
+import static com.tianzhu.identity.uaa.test.SnippetUtils.parameterWithName;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -63,15 +62,15 @@ public class PasswordEndpointsDocs extends InjectedMockContextTest {
             fieldWithPath("user_id").type(STRING).description("The UUID identifying the user.")
         );
 
-        Snippet requestParameters = RequestDocumentation.requestParameters(
-            SnippetUtils.parameterWithName("client_id").optional(null).type(STRING).description("Optional client_id "),
-            SnippetUtils.parameterWithName("redirect_uri").optional(null).type(STRING).description("Optional redirect_uri to be used if the `/reset_password` flow is completed.")
+        Snippet requestParameters = requestParameters(
+            parameterWithName("client_id").optional(null).type(STRING).description("Optional client_id "),
+            parameterWithName("redirect_uri").optional(null).type(STRING).description("Optional redirect_uri to be used if the `/reset_password` flow is completed.")
         );
 
-        Snippet requestHeaders = HeaderDocumentation.requestHeaders(
-            SnippetUtils.headerWithName("Authorization").required().description("Bearer token with the scope `oauth.login` present."),
-            SnippetUtils.headerWithName(IdentityZoneSwitchingFilter.HEADER).optional(null).description("If using a `zones.<zoneId>.admin scope/token, indicates what zone this request goes to by supplying a zone_id."),
-            SnippetUtils.headerWithName(IdentityZoneSwitchingFilter.SUBDOMAIN_HEADER).optional(null).description("If using a `zones.<zoneId>.admin scope/token, indicates what zone this request goes to by supplying a subdomain.")
+        Snippet requestHeaders = requestHeaders(
+            headerWithName("Authorization").required().description("Bearer token with the scope `oauth.login` present."),
+            headerWithName(IdentityZoneSwitchingFilter.HEADER).optional(null).description("If using a `zones.<zoneId>.admin` scope/token, indicates what zone this request goes to by supplying a zone_id."),
+            headerWithName(IdentityZoneSwitchingFilter.SUBDOMAIN_HEADER).optional(null).description("If using a `zones.<zoneId>.admin` scope/token, indicates what zone this request goes to by supplying a subdomain.")
         );
 
 

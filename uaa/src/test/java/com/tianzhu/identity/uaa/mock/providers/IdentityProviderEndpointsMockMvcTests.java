@@ -18,15 +18,7 @@ import com.tianzhu.identity.uaa.audit.AuditEventType;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
 import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
-import com.tianzhu.identity.uaa.provider.AbstractXOAuthIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.IdentityProvider;
-import com.tianzhu.identity.uaa.provider.IdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.IdentityProviderStatus;
-import com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning;
-import com.tianzhu.identity.uaa.provider.OIDCIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.PasswordPolicy;
-import com.tianzhu.identity.uaa.provider.SamlIdentityProviderDefinition;
-import com.tianzhu.identity.uaa.provider.UaaIdentityProviderDefinition;
+import com.tianzhu.identity.uaa.provider.*;
 import com.tianzhu.identity.uaa.provider.saml.BootstrapSamlIdentityProviderConfiguratorTests;
 import com.tianzhu.identity.uaa.scim.ScimUser;
 import com.tianzhu.identity.uaa.test.TestApplicationEventListener;
@@ -48,27 +40,14 @@ import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.tianzhu.identity.uaa.provider.ExternalIdentityProviderDefinition.USER_NAME_ATTRIBUTE_NAME;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class IdentityProviderEndpointsMockMvcTests extends InjectedMockContextTest {

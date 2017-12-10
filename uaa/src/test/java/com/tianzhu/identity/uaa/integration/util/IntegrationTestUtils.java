@@ -14,6 +14,8 @@
 
 package com.tianzhu.identity.uaa.integration.util;
 
+import com.dumbster.smtp.SimpleSmtpServer;
+import com.dumbster.smtp.SmtpMessage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.CookieStore;
@@ -24,8 +26,9 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import com.tianzhu.identity.uaa.ServerRunning;
 import com.tianzhu.identity.uaa.account.UserInfoResponse;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
-import com.tianzhu.identity.uaa.mfa_provider.GoogleMfaProviderConfig;
-import com.tianzhu.identity.uaa.mfa_provider.MfaProvider;
+import com.tianzhu.identity.uaa.integration.feature.TestClient;
+import com.tianzhu.identity.uaa.mfa.GoogleMfaProviderConfig;
+import com.tianzhu.identity.uaa.mfa.MfaProvider;
 import com.tianzhu.identity.uaa.provider.AbstractXOAuthIdentityProviderDefinition;
 import com.tianzhu.identity.uaa.provider.IdentityProvider;
 import com.tianzhu.identity.uaa.provider.OIDCIdentityProviderDefinition;
@@ -46,18 +49,9 @@ import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Assert;
-import org.openqa.selenium.Cookie;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -80,20 +74,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,10 +87,7 @@ import static com.tianzhu.identity.uaa.provider.ExternalIdentityProviderDefiniti
 import static com.tianzhu.identity.uaa.security.web.CookieBasedCsrfTokenRepository.DEFAULT_CSRF_COOKIE_NAME;
 import static com.tianzhu.identity.uaa.util.UaaHttpRequestUtils.createRequestFactory;
 import static org.hamcrest.core.StringStartsWith.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -493,7 +474,7 @@ public class IntegrationTestUtils {
             return scimGroup;
         } else {
             ResponseEntity<String> group = client.postForEntity(url + "/Groups", scimGroup, String.class);
-            if (group.getStatusCode()==HttpStatus.CREATED) {
+            if (group.getStatusCode()== HttpStatus.CREATED) {
                 return JsonUtils.readValue(group.getBody(), ScimGroup.class);
             } else {
                 throw new IllegalStateException("Invalid return code:"+group.getStatusCode());
@@ -630,7 +611,7 @@ public class IntegrationTestUtils {
                                                            Consumer<IdentityZoneConfiguration> configureZone) {
 
         ResponseEntity<String> zoneGet = client.getForEntity(url + "/identity-zones/{id}", String.class, id);
-        if (zoneGet.getStatusCode()==HttpStatus.OK) {
+        if (zoneGet.getStatusCode()== HttpStatus.OK) {
             IdentityZone existing = JsonUtils.readValue(zoneGet.getBody(), IdentityZone.class);
             existing.setSubdomain(subdomain);
             client.put(url + "/identity-zones/{id}", existing, id);
@@ -650,7 +631,7 @@ public class IntegrationTestUtils {
             IdentityZoneConfiguration config) {
 
         ResponseEntity<String> zoneGet = client.getForEntity(url + "/identity-zones/{id}", String.class, id);
-        if (zoneGet.getStatusCode()==HttpStatus.OK) {
+        if (zoneGet.getStatusCode()== HttpStatus.OK) {
             IdentityZone existing = JsonUtils.readValue(zoneGet.getBody(), IdentityZone.class);
             existing.setSubdomain(subdomain);
             existing.setConfig(config);
@@ -981,7 +962,7 @@ public class IntegrationTestUtils {
                         String.class,
                         provider.getId()
                     );
-                    if (providerPut.getStatusCode()==HttpStatus.OK) {
+                    if (providerPut.getStatusCode()== HttpStatus.OK) {
                         return JsonUtils.readValue(providerPut.getBody(), IdentityProvider.class);
                     }
                 }
@@ -996,7 +977,7 @@ public class IntegrationTestUtils {
             String.class,
             provider.getId()
         );
-        if (providerPost.getStatusCode()==HttpStatus.CREATED) {
+        if (providerPost.getStatusCode()== HttpStatus.CREATED) {
             return JsonUtils.readValue(providerPost.getBody(), IdentityProvider.class);
         }
         throw new IllegalStateException("Invalid result code returned, unable to create identity provider:"+providerPost.getStatusCode());
@@ -1222,7 +1203,7 @@ public class IntegrationTestUtils {
         }
 
         response = serverRunning.createRestTemplate().exchange(
-            result.getHeaders().getLocation().toString(),HttpMethod.GET, new HttpEntity<>(null,getHeaders(cookies)),
+            result.getHeaders().getLocation().toString(), HttpMethod.GET, new HttpEntity<>(null,getHeaders(cookies)),
             String.class);
 
         if (response.getHeaders().containsKey("Set-Cookie")) {
@@ -1374,6 +1355,23 @@ public class IntegrationTestUtils {
             }
             return  builder.build();
         }
+    }
+
+    public static String createAnotherUser(WebDriver webDriver, String password, SimpleSmtpServer simpleSmtpServer, String url, TestClient testClient) {
+        String userEmail = "user" + new SecureRandom().nextInt() + "@example.com";
+
+        webDriver.get(url + "/create_account");
+        webDriver.findElement(By.name("email")).sendKeys(userEmail);
+        webDriver.findElement(By.name("password")).sendKeys(password);
+        webDriver.findElement(By.name("password_confirmation")).sendKeys(password);
+        webDriver.findElement(By.xpath("//input[@value='Send activation link']")).click();
+
+        Iterator receivedEmail = simpleSmtpServer.getReceivedEmail();
+        SmtpMessage message = (SmtpMessage) receivedEmail.next();
+        receivedEmail.remove();
+        webDriver.get(testClient.extractLink(message.getBody()));
+
+        return userEmail;
     }
 
 

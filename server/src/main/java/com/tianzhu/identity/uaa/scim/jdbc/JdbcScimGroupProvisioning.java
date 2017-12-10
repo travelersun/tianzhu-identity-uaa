@@ -84,6 +84,12 @@ public class JdbcScimGroupProvisioning extends AbstractQueryable<ScimGroup>
         GROUP_TABLE
     );
 
+    public static final String GET_GROUP_BY_NAME_SQL = String.format(
+        "select %s from %s where displayName=? and identity_zone_id=?",
+        GROUP_FIELDS,
+        GROUP_TABLE
+    );
+
     public static final String QUERY_FOR_FILTER = String.format(
         "select %s from %s",
         GROUP_FIELDS,
@@ -153,7 +159,7 @@ public class JdbcScimGroupProvisioning extends AbstractQueryable<ScimGroup>
         setQueryConverter(new SimpleSearchQueryConverter());
     }
 
-    private void createAndIgnoreDuplicate(final String name, final String zoneId) {
+    public void createAndIgnoreDuplicate(final String name, final String zoneId) {
         try {
             create(new ScimGroup(null, name, zoneId), zoneId);
         }catch (ScimResourceAlreadyExistsException ignore){
@@ -162,8 +168,12 @@ public class JdbcScimGroupProvisioning extends AbstractQueryable<ScimGroup>
 
     @Override
     public ScimGroup createOrGet(ScimGroup group, String zoneId) {
-        createAndIgnoreDuplicate(group.getDisplayName(), zoneId);
-        return getByName(group.getDisplayName(), zoneId);
+        try {
+            return getByName(group.getDisplayName(), zoneId);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            createAndIgnoreDuplicate(group.getDisplayName(), zoneId);
+            return getByName(group.getDisplayName(), zoneId);
+        }
     }
 
     @Override
@@ -171,9 +181,7 @@ public class JdbcScimGroupProvisioning extends AbstractQueryable<ScimGroup>
         if (!hasText(displayName)) {
             throw new IncorrectResultSizeDataAccessException("group name must contain text", 1, 0);
         }
-        String jsonName = UaaStringUtils.toJsonString(displayName);
-        String filter = String.format(GROUP_BY_NAME_FILTER, jsonName);
-        List<ScimGroup> groups = query(filter, zoneId);
+        List<ScimGroup> groups = jdbcTemplate.query(GET_GROUP_BY_NAME_SQL, rowMapper, displayName, zoneId);
         if (groups.size()==1) {
             return groups.get(0);
         } else {
@@ -304,12 +312,6 @@ public class JdbcScimGroupProvisioning extends AbstractQueryable<ScimGroup>
     public int deleteByOrigin(String origin, String zoneId) {
         jdbcTemplate.update(DELETE_EXTERNAL_GROUP_BY_PROVIDER, zoneId, origin);
         return jdbcTemplate.update(DELETE_GROUP_MEMBERSHIP_BY_PROVIDER, zoneId, origin);
-    }
-
-    @Override
-    public int deleteByClient(String clientId, String zoneId) {
-        //no op - nothing to do here
-        return 0;
     }
 
     @Override

@@ -12,10 +12,8 @@
  *******************************************************************************/
 package com.tianzhu.identity.uaa.scim.endpoints;
 
-import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
-import com.tianzhu.identity.uaa.mock.util.MockMvcUtils;
-import com.tianzhu.identity.uaa.test.SnippetUtils;
 import com.tianzhu.identity.uaa.constants.OriginKeys;
+import com.tianzhu.identity.uaa.mock.InjectedMockContextTest;
 import com.tianzhu.identity.uaa.scim.ScimGroup;
 import com.tianzhu.identity.uaa.scim.ScimGroupExternalMember;
 import com.tianzhu.identity.uaa.util.JsonUtils;
@@ -23,9 +21,7 @@ import com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.restdocs.headers.HeaderDescriptor;
-import org.springframework.restdocs.payload.PayloadDocumentation;
 import org.springframework.restdocs.request.ParameterDescriptor;
-import org.springframework.restdocs.request.RequestDocumentation;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -33,6 +29,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import static com.tianzhu.identity.uaa.constants.OriginKeys.LDAP;
 import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.createGroup;
 import static com.tianzhu.identity.uaa.mock.util.MockMvcUtils.getClientCredentialsOAuthAccessToken;
+import static com.tianzhu.identity.uaa.test.SnippetUtils.fieldWithPath;
+import static com.tianzhu.identity.uaa.test.SnippetUtils.parameterWithName;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -60,32 +58,32 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
     private final String EXTERNAL_GROUP_DESCRIPTION = "The identifier for the group in external identity provider that needs to be mapped to internal UAA groups";
 
     private static final HeaderDescriptor AUTHORIZATION_HEADER = headerWithName("Authorization").description("Bearer token with authorization for `scim.write` scope");
-    private static final HeaderDescriptor IDENTITY_ZONE_ID_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).description("May include this header to administer another zone if using `zones.<zone id>.admin` or `uaa.admin` scope against the default UAA zone.").optional();
-    private static final HeaderDescriptor IDENTITY_ZONE_SUBDOMAIN_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).optional().description("If using a `zones.<zoneId>.admin scope/token, indicates what zone this request goes to by supplying a zone_id.");
+    private static final HeaderDescriptor IDENTITY_ZONE_ID_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).description("May include this header to administer another zone if using `zones.<zoneId>.admin` or `uaa.admin` scope against the default UAA zone.").optional();
+    private static final HeaderDescriptor IDENTITY_ZONE_SUBDOMAIN_HEADER = headerWithName(IdentityZoneSwitchingFilter.HEADER).optional().description("If using a `zones.<zoneId>.admin` scope/token, indicates what zone this request goes to by supplying a zone_id.");
 
-    private final ParameterDescriptor externalGroup = SnippetUtils.parameterWithName("externalGroup").required().description(EXTERNAL_GROUP_DESCRIPTION);
+    private final ParameterDescriptor externalGroup = parameterWithName("externalGroup").required().description(EXTERNAL_GROUP_DESCRIPTION);
 
-    private final Snippet responseFields = PayloadDocumentation.responseFields(
-        SnippetUtils.fieldWithPath("groupId").description(GROUP_ID_DESC),
-        SnippetUtils.fieldWithPath("externalGroup").description(EXTERNAL_GROUP_DESCRIPTION),
-        SnippetUtils.fieldWithPath("displayName").description(DISPLAY_NAME_DESC),
-        SnippetUtils.fieldWithPath("origin").description(ORIGIN_DESC),
-        SnippetUtils.fieldWithPath("meta.version").description(VERSION_DESC),
-        SnippetUtils.fieldWithPath("meta.created").description("The time the group mapping was created"),
-        SnippetUtils.fieldWithPath("meta.lastModified").description("The time the group mapping was last updated"),
-        SnippetUtils.fieldWithPath("schemas").description(SCHEMAS_DESC)
+    private final Snippet responseFields = responseFields(
+        fieldWithPath("groupId").description(GROUP_ID_DESC),
+        fieldWithPath("externalGroup").description(EXTERNAL_GROUP_DESCRIPTION),
+        fieldWithPath("displayName").description(DISPLAY_NAME_DESC),
+        fieldWithPath("origin").description(ORIGIN_DESC),
+        fieldWithPath("meta.version").description(VERSION_DESC),
+        fieldWithPath("meta.created").description("The time the group mapping was created"),
+        fieldWithPath("meta.lastModified").description("The time the group mapping was last updated"),
+        fieldWithPath("schemas").description(SCHEMAS_DESC)
     );
-    private final ParameterDescriptor origin = SnippetUtils.parameterWithName("origin").required().description(ORIGIN_DESC);
+    private final ParameterDescriptor origin = parameterWithName("origin").required().description(ORIGIN_DESC);
 
     private String scimReadToken;
     private String scimWriteToken;
 
     @Before
     public void setUp() throws Exception {
-        scimReadToken = MockMvcUtils.getClientCredentialsOAuthAccessToken(getMockMvc(), "admin", "adminsecret",
+        scimReadToken = getClientCredentialsOAuthAccessToken(getMockMvc(), "admin", "adminsecret",
                 "scim.read", null, true);
 
-        scimWriteToken = MockMvcUtils.getClientCredentialsOAuthAccessToken(getMockMvc(), "admin", "adminsecret",
+        scimWriteToken = getClientCredentialsOAuthAccessToken(getMockMvc(), "admin", "adminsecret",
                 "scim.write", null, true);
     }
 
@@ -93,19 +91,19 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
     public void createExternalGroupMapping() throws Exception {
         ScimGroup group = new ScimGroup();
         group.setDisplayName("Group For Testing Creating External Group Mapping");
-        group = MockMvcUtils.createGroup(getMockMvc(), scimWriteToken, group);
+        group = createGroup(getMockMvc(), scimWriteToken, group);
 
         Snippet requestHeader = requestHeaders(
                 AUTHORIZATION_HEADER, IDENTITY_ZONE_ID_HEADER, IDENTITY_ZONE_SUBDOMAIN_HEADER
         );
 
-        Snippet requestFields = PayloadDocumentation.requestFields(
-                SnippetUtils.fieldWithPath("groupId").required().description(GROUP_ID_DESC),
-                SnippetUtils.fieldWithPath("externalGroup").required().description(EXTERNAL_GROUP_DESCRIPTION),
-                SnippetUtils.fieldWithPath("origin").optional(LDAP).type(STRING).description(ORIGIN_DESC),
-                SnippetUtils.fieldWithPath("meta.version").optional(0).description(VERSION_DESC),
-                SnippetUtils.fieldWithPath("meta.created").ignored(),
-                SnippetUtils.fieldWithPath("schemas").ignored()
+        Snippet requestFields = requestFields(
+                fieldWithPath("groupId").required().description(GROUP_ID_DESC),
+                fieldWithPath("externalGroup").required().description(EXTERNAL_GROUP_DESCRIPTION),
+                fieldWithPath("origin").optional(LDAP).type(STRING).description(ORIGIN_DESC),
+                fieldWithPath("meta.version").optional(0).description(VERSION_DESC),
+                fieldWithPath("meta.created").ignored(),
+                fieldWithPath("schemas").ignored()
         );
 
         createExternalGroupMappingHelper(group)
@@ -117,13 +115,13 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
     public void deleteExternalGroupMapping() throws Exception  {
         ScimGroup group = new ScimGroup();
         group.setDisplayName("Group For Testing Deleting External Group Mapping");
-        group = MockMvcUtils.createGroup(getMockMvc(), scimWriteToken, group);
+        group = createGroup(getMockMvc(), scimWriteToken, group);
 
         ScimGroupExternalMember scimGroupExternalMember = JsonUtils.readValue(createExternalGroupMappingHelper(group)
                 .andReturn().getResponse().getContentAsString(), ScimGroupExternalMember.class);
 
-        Snippet pathParameters = RequestDocumentation.pathParameters(
-                SnippetUtils.parameterWithName("groupId").required().description(GROUP_ID_DESC),
+        Snippet pathParameters = pathParameters(
+                parameterWithName("groupId").required().description(GROUP_ID_DESC),
                 externalGroup,
                 origin
         );
@@ -147,13 +145,13 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
     public void deleteExternalGroupMappingUsingName() throws Exception  {
         ScimGroup group = new ScimGroup();
         group.setDisplayName("Group For Testing Deleting External Group Mapping By Name");
-        group = MockMvcUtils.createGroup(getMockMvc(), scimWriteToken, group);
+        group = createGroup(getMockMvc(), scimWriteToken, group);
 
         ScimGroupExternalMember scimGroupExternalMember = JsonUtils.readValue(createExternalGroupMappingHelper(group)
                 .andReturn().getResponse().getContentAsString(), ScimGroupExternalMember.class);
 
-        Snippet pathParameters = RequestDocumentation.pathParameters(
-                SnippetUtils.parameterWithName("displayName").required().description(DISPLAY_NAME_DESC),
+        Snippet pathParameters = pathParameters(
+                parameterWithName("displayName").required().description(DISPLAY_NAME_DESC),
                 externalGroup,
                 origin
         );
@@ -177,16 +175,16 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
     public void listExternalGroupMapping() throws Exception {
         ScimGroup group = new ScimGroup();
         group.setDisplayName("Group For Testing Retrieving External Group Mappings");
-        group = MockMvcUtils.createGroup(getMockMvc(), scimWriteToken, group);
+        group = createGroup(getMockMvc(), scimWriteToken, group);
 
         createExternalGroupMappingHelper(group);
 
-        Snippet requestParameters = RequestDocumentation.requestParameters(
-                SnippetUtils.parameterWithName("startIndex").optional("1").type(NUMBER).description("Display paged results beginning at specified index"),
-                SnippetUtils.parameterWithName("count").optional("100").type(NUMBER).description("Number of results to return per page"),
-                SnippetUtils.parameterWithName("origin").optional(null).type(STRING).description("Filters results based on supplied origin. default is to return all"),
-                SnippetUtils.parameterWithName("externalGroup").optional(null).type(STRING).description("Filters results based on supplied externalGroup. default is to return all"),
-                SnippetUtils.parameterWithName("filter").optional(null).type(STRING).description("Deprecated - will be removed in future release. Use `externalGroup` and `origin` parameters instead.")
+        Snippet requestParameters = requestParameters(
+                parameterWithName("startIndex").optional("1").type(NUMBER).description("Display paged results beginning at specified index"),
+                parameterWithName("count").optional("100").type(NUMBER).description("Number of results to return per page"),
+                parameterWithName("origin").optional(null).type(STRING).description("Filters results based on supplied origin. default is to return all"),
+                parameterWithName("externalGroup").optional(null).type(STRING).description("Filters results based on supplied externalGroup. default is to return all"),
+                parameterWithName("filter").optional(null).type(STRING).description("Deprecated - will be removed in future release. Use `externalGroup` and `origin` parameters instead.")
         );
 
         Snippet requestHeaders = requestHeaders(
@@ -195,16 +193,16 @@ public class ScimExternalGroupMappingsEndpointsDocs extends InjectedMockContextT
                 IDENTITY_ZONE_SUBDOMAIN_HEADER
         );
 
-        Snippet responseFields = PayloadDocumentation.responseFields(
-                SnippetUtils.fieldWithPath("resources[].groupId").description(GROUP_ID_DESC),
-                SnippetUtils.fieldWithPath("resources[].displayName").description(DISPLAY_NAME_DESC),
-                SnippetUtils.fieldWithPath("resources[].externalGroup").description(EXTERNAL_GROUP_DESCRIPTION),
-                SnippetUtils.fieldWithPath("resources[].origin").description(ORIGIN_DESC),
+        Snippet responseFields = responseFields(
+                fieldWithPath("resources[].groupId").description(GROUP_ID_DESC),
+                fieldWithPath("resources[].displayName").description(DISPLAY_NAME_DESC),
+                fieldWithPath("resources[].externalGroup").description(EXTERNAL_GROUP_DESCRIPTION),
+                fieldWithPath("resources[].origin").description(ORIGIN_DESC),
 
-                SnippetUtils.fieldWithPath("startIndex").description("The index of the first item of this page of results"),
-                SnippetUtils.fieldWithPath("itemsPerPage").description("The page size used in producing this page of results"),
-                SnippetUtils.fieldWithPath("totalResults").description("The number of results which matched the filter"),
-                SnippetUtils.fieldWithPath("schemas").description(SCHEMAS_DESC)
+                fieldWithPath("startIndex").description("The index of the first item of this page of results"),
+                fieldWithPath("itemsPerPage").description("The page size used in producing this page of results"),
+                fieldWithPath("totalResults").description("The number of results which matched the filter"),
+                fieldWithPath("schemas").description(SCHEMAS_DESC)
         );
 
         MockHttpServletRequestBuilder get = get("/Groups/External")

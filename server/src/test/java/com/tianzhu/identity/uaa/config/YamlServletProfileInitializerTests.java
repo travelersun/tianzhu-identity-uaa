@@ -23,6 +23,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.util.Log4jConfigurer;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.support.StandardServletEnvironment;
@@ -33,6 +34,7 @@ import java.util.Enumeration;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 import static org.springframework.util.StringUtils.hasText;
 
 /**
@@ -104,6 +106,20 @@ public class YamlServletProfileInitializerTests {
         assertEquals("bar", environment.getProperty("foo"));
         assertEquals("baz", environment.getProperty("spam.foo"));
 
+    }
+
+
+    @Test
+    public void testLoadSessionEventPublisher() throws Exception {
+
+        Mockito.when(context.getResource(Matchers.contains("${APPLICATION_CONFIG_URL}"))).thenReturn(
+            new ByteArrayResource("foo: bar\nspam:\n  foo: baz".getBytes()));
+
+        initializer.initialize(context);
+
+        ArgumentCaptor<HttpSessionEventPublisher> httpSessionEventPublisherArgumentCaptor = ArgumentCaptor.forClass(HttpSessionEventPublisher.class);
+        verify(servletContext, atLeastOnce()).addListener(httpSessionEventPublisherArgumentCaptor.capture());
+        assertNotNull(httpSessionEventPublisherArgumentCaptor.getValue());
     }
 
     @Test
