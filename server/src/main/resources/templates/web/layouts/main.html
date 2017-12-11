@@ -1,17 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" dir="ltr" lang="en"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      th:with="assetBaseUrl=${@environment.getProperty('assetBaseUrl','/resources/oss')},
-                isUaa=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).isUaa()},
-                zoneName=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).get().getName()},
-                branding=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).resolveBranding()},
-                companyName=${branding.getCompanyName() ?: 'Cloud Foundry'},
-                copyrightCompanyName=${branding.getCompanyName() ?: 'CloudFoundry.org Foundation, Inc. '},
-                copyrightFallback=${'Copyright &#169; ' + copyrightCompanyName + ' ' + #dates.year(#dates.createNow()) + '. All Rights Reserved.'},
-                copyright=${branding.getFooterLegalText() ?: copyrightFallback},
-                brandingLogo=${branding.getProductLogo()},
-                fallbackLogo=${isUaa ? assetBaseUrl+'/images/product-logo.png' : null},
-                logo=${brandingLogo != null ? 'data:image/png;base64,'+#strings.replace(brandingLogo,T(java.lang.System).getProperty('line.separator'),'') : fallbackLogo}" >
+      th:with="assetBaseUrl=${@environment.getProperty('assetBaseUrl','/resources/oss')},isUaa=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).isUaa()},zoneName=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).get().getName()},branding=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).resolveBranding()},companyName=${branding.getCompanyName() ?: 'Cloud Foundry'},copyrightCompanyName=${branding.getCompanyName() ?: 'CloudFoundry.org Foundation, Inc. '},copyrightFallback=${'Copyright &#169; ' + copyrightCompanyName + ' ' + #dates.year(#dates.createNow()) + '. All Rights Reserved.'},copyright=${branding.getFooterLegalText() ?: copyrightFallback},brandingLogo=${branding.getProductLogo()},fallbackLogo=${isUaa ? assetBaseUrl+'/images/product-logo.png' : null},logo=${brandingLogo != null ? 'data:image/png;base64,'+#strings.replace(brandingLogo,T(java.lang.System).getProperty('line.separator'),'') : fallbackLogo}" >
 <head>
     <title th:text="${isUaa ? companyName : zoneName}" th:inline="text"></title>
     <link href='/resources/oss/images/square-logo.png' th:with="icon=${branding.getSquareLogo()}" th:href="@{${icon != null ? 'data:image/png;base64,'+icon : (assetBaseUrl + '/images/square-logo.png')}}" rel='shortcut icon' />

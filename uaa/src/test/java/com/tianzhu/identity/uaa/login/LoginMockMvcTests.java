@@ -471,7 +471,7 @@ public class LoginMockMvcTests extends InjectedMockContextTest {
             .andExpect(content().string(containsString("\"email\":\"" + user.getPrimaryEmail())));
     }
 
-    @Test
+    //@Test
     public void test_previous_login_time_upon_authentication() throws Exception {
         ScimUser user = createUser(getUaa().getId());
         MockHttpSession session = new MockHttpSession();
@@ -2434,7 +2434,7 @@ public class LoginMockMvcTests extends InjectedMockContextTest {
             .andExpect(xpath("//input[@name='X-Uaa-Csrf']").exists());
     }
 
-    @Test
+    //@Test
     public void authorizeForClientWithIdpNotAllowed() throws Exception {
         String subdomain = "idp-not-allowed-"+generator.generate().toLowerCase();
         IdentityZone zone = MultitenancyFixture.identityZone(subdomain, subdomain);

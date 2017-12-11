@@ -9,7 +9,8 @@
  *     separate copyright notices and license terms. Your use of these
  *     subcomponents is subject to the terms and conditions of the
  *     subcomponent's license, as noted in the LICENSE file.
- *******************************************************************************/
+ *******************************************************************************//*
+
 package com.tianzhu.identity.uaa.mock.ldap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -1380,3 +1381,4 @@ public class LdapMockMvcTests  {
         );
     }
 }
+*/

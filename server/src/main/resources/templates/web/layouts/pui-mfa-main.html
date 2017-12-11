@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" dir="ltr" lang="en"
-      th:with="assetBaseUrl=${@environment.getProperty('assetBaseUrl','/resources/oss')},
-                isUaa=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).isUaa()},
-                zoneName=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).get().getName()},
-                branding=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).resolveBranding()},
-                banner=${branding.getBanner()},
-                companyName=${branding.getCompanyName() ?: 'Cloud Foundry'},
-                copyrightCompanyName=${branding.getCompanyName() ?: 'CloudFoundry.org Foundation, Inc. '},
-                copyrightFallback=${'Copyright &#169; ' + copyrightCompanyName + ' ' + #dates.year(#dates.createNow()) + '. All Rights Reserved.'},
-                copyright=${branding.getFooterLegalText() ?: copyrightFallback}" >
+      th:with="assetBaseUrl=${@environment.getProperty('assetBaseUrl','/resources/oss')},isUaa=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).isUaa()},zoneName=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).get().getName()},branding=${T(com.tianzhu.identity.uaa.zone.IdentityZoneHolder).resolveBranding()},banner=${branding.getBanner()},companyName=${branding.getCompanyName() ?: 'Cloud Foundry'},copyrightCompanyName=${branding.getCompanyName() ?: 'CloudFoundry.org Foundation, Inc. '},copyrightFallback=${'Copyright &#169; ' + copyrightCompanyName + ' ' + #dates.year(#dates.createNow()) + '. All Rights Reserved.'},copyright=${branding.getFooterLegalText() ?: copyrightFallback}" >
 
 <head>
     <title th:text="${isUaa ? companyName : zoneName}" th:inline="text"></title>

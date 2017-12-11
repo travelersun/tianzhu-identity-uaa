@@ -168,7 +168,7 @@ scim:
   users:
     - sre@vmware.com|apassword|scim.write,scim.read,openid
     - marissa|koala|openid
-    - testbootuser|password|openid
+    - testbootuser|password|openid,scim.read
   groups:
     zones.read: Read identity zones
     zones.write: Create and update identity zones
