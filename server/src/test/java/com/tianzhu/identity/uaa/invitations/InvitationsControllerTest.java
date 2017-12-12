@@ -1,4 +1,3 @@
-/*
 package com.tianzhu.identity.uaa.invitations;
 
 import com.tianzhu.identity.uaa.authentication.UaaPrincipal;
@@ -416,8 +415,7 @@ public class InvitationsControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andExpect(model().attribute("error_message_code", "code_expired"))
             .andExpect(view().name("invitations/accept_invite"))
-            .andExpect(xpath("/*/
-/*[@class='email-display']").doesNotExist())
+            .andExpect(xpath("//*[@class='email-display']").doesNotExist())
             .andExpect(xpath("//form").doesNotExist());
         assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
@@ -721,4 +719,3 @@ public class InvitationsControllerTest {
 
     }
 }
-*/
