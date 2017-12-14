@@ -78,8 +78,8 @@
         <csrf disabled="true"/>
     </http>
 
-    <bean id="backwardsCompatibleScopeParameter"
-          class="com.tianzhu.identity.uaa.web.BackwardsCompatibleScopeParsingFilter"/>
+    <!--<bean id="backwardsCompatibleScopeParameter"
+          class="com.tianzhu.identity.uaa.web.BackwardsCompatibleScopeParsingFilter"/>-->
 
     <http name="changeEmailSecurity"
           entry-point-ref="loginEntryPoint"

@@ -15,6 +15,7 @@ package com.tianzhu.identity.uaa.impl.config;
 import org.apache.log4j.MDC;
 import com.tianzhu.identity.uaa.impl.config.YamlProcessor.ResolutionMethod;
 import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -51,7 +52,7 @@ import static org.springframework.util.StringUtils.*;
  *
  *
  */
-public class YamlServletProfileInitializer implements ApplicationContextInitializer<ConfigurableWebApplicationContext> {
+public class YamlServletProfileInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     private static final String PROFILE_CONFIG_FILE_LOCATIONS = "environmentConfigLocations";
 
@@ -69,63 +70,78 @@ public class YamlServletProfileInitializer implements ApplicationContextInitiali
     private SystemEnvironmentAccessor environmentAccessor = new SystemEnvironmentAccessor(){};
 
     @Override
-    public void initialize(ConfigurableWebApplicationContext applicationContext) {
+    public void initialize(ConfigurableApplicationContext applicationContext) {
 
-        ServletContext servletContext = applicationContext.getServletContext();
+        if(applicationContext instanceof ConfigurableWebApplicationContext){
 
-        HttpSessionEventPublisher publisher = new HttpSessionEventPublisher();
-        servletContext.addListener(publisher);
+            ConfigurableWebApplicationContext webApplicationContext =  (ConfigurableWebApplicationContext)applicationContext;
+            ServletContext servletContext = webApplicationContext.getServletContext();
 
-        WebApplicationContextUtils.initServletPropertySources(applicationContext.getEnvironment().getPropertySources(),
-                        servletContext, applicationContext.getServletConfig());
+            if(null != servletContext){
 
-        ServletConfig servletConfig = applicationContext.getServletConfig();
-        String locations = servletConfig == null ? null : servletConfig.getInitParameter(PROFILE_CONFIG_FILE_LOCATIONS);
-        List<Resource> resources = new ArrayList<>();
-
-        //add default locations first
-        Set<String> defaultLocation = StringUtils.commaDelimitedListToSet(servletConfig == null ? null : servletConfig.getInitParameter(PROFILE_CONFIG_FILE_DEFAULT));
-        if (defaultLocation != null && defaultLocation.size()>0) {
-            for (String s : defaultLocation) {
-                Resource defaultResource = new ClassPathResource(s);
-                if (defaultResource.exists()) {
-                    resources.add(defaultResource);
+                try {
+                    HttpSessionEventPublisher publisher = new HttpSessionEventPublisher();
+                    servletContext.addListener(publisher);
+                }catch (Exception e) {
+                    //servletContext.log("Error add HttpSessionEventPublisher Listener : " , e);
                 }
+
+                WebApplicationContextUtils.initServletPropertySources(webApplicationContext.getEnvironment().getPropertySources(),
+                        servletContext, webApplicationContext.getServletConfig());
+
+                ServletConfig servletConfig = webApplicationContext.getServletConfig();
+                String locations = servletConfig == null ? null : servletConfig.getInitParameter(PROFILE_CONFIG_FILE_LOCATIONS);
+                List<Resource> resources = new ArrayList<>();
+
+                //add default locations first
+                Set<String> defaultLocation = StringUtils.commaDelimitedListToSet(servletConfig == null ? null : servletConfig.getInitParameter(PROFILE_CONFIG_FILE_DEFAULT));
+                if (defaultLocation != null && defaultLocation.size()>0) {
+                    for (String s : defaultLocation) {
+                        Resource defaultResource = new ClassPathResource(s);
+                        if (defaultResource.exists()) {
+                            resources.add(defaultResource);
+                        }
+                    }
+                }
+
+
+                resources.addAll(getResource(servletContext, webApplicationContext, locations));
+
+                Resource yamlFromEnv = getYamlFromEnvironmentVariable();
+                if (yamlFromEnv!=null) {
+                    resources.add(yamlFromEnv);
+                }
+
+                if (resources.isEmpty()) {
+                    servletContext.log("No YAML environment properties from servlet.  Defaulting to servlet context.");
+                    locations = servletContext.getInitParameter(PROFILE_CONFIG_FILE_LOCATIONS);
+                    resources.addAll(getResource(servletContext, webApplicationContext, locations));
+                }
+
+                try {
+                    servletContext.log("Loading YAML environment properties from location: " + resources.toString());
+                    YamlMapFactoryBean factory = new YamlMapFactoryBean();
+                    factory.setResolutionMethod(ResolutionMethod.OVERRIDE_AND_IGNORE);
+
+                    factory.setResources(resources.toArray(new Resource[resources.size()]));
+
+                    Map<String, Object> map = factory.getObject();
+                    String yamlStr = (new Yaml()).dump(map);
+                    map.put(rawYamlKey, yamlStr);
+                    NestedMapPropertySource properties = new NestedMapPropertySource("servletConfigYaml", map);
+                    webApplicationContext.getEnvironment().getPropertySources().addLast(properties);
+                    applySpringProfiles(webApplicationContext.getEnvironment(), servletContext);
+                    applyLog4jConfiguration(webApplicationContext.getEnvironment(), servletContext);
+
+                } catch (Exception e) {
+                    servletContext.log("Error loading YAML environment properties from location: " + resources.toString(), e);
+                }
+
+
             }
+
         }
 
-
-        resources.addAll(getResource(servletContext, applicationContext, locations));
-
-        Resource yamlFromEnv = getYamlFromEnvironmentVariable();
-        if (yamlFromEnv!=null) {
-            resources.add(yamlFromEnv);
-        }
-
-        if (resources.isEmpty()) {
-            servletContext.log("No YAML environment properties from servlet.  Defaulting to servlet context.");
-            locations = servletContext.getInitParameter(PROFILE_CONFIG_FILE_LOCATIONS);
-            resources.addAll(getResource(servletContext, applicationContext, locations));
-        }
-
-        try {
-            servletContext.log("Loading YAML environment properties from location: " + resources.toString());
-            YamlMapFactoryBean factory = new YamlMapFactoryBean();
-            factory.setResolutionMethod(ResolutionMethod.OVERRIDE_AND_IGNORE);
-
-            factory.setResources(resources.toArray(new Resource[resources.size()]));
-
-            Map<String, Object> map = factory.getObject();
-            String yamlStr = (new Yaml()).dump(map);
-            map.put(rawYamlKey, yamlStr);
-            NestedMapPropertySource properties = new NestedMapPropertySource("servletConfigYaml", map);
-            applicationContext.getEnvironment().getPropertySources().addLast(properties);
-            applySpringProfiles(applicationContext.getEnvironment(), servletContext);
-            applyLog4jConfiguration(applicationContext.getEnvironment(), servletContext);
-
-        } catch (Exception e) {
-            servletContext.log("Error loading YAML environment properties from location: " + resources.toString(), e);
-        }
 
     }
 

@@ -50,7 +50,7 @@
     <bean id="mfaConfigValidator" class="com.tianzhu.identity.uaa.zone.MfaConfigValidator">
         <property name="mfaProviderProvisioning" ref="mfaProviderProvisioning"/>
     </bean>
-
+<!--
     <bean id="sessionCookieConfig" class="com.tianzhu.identity.uaa.web.UaaSessionCookieConfig">
         <property name="comment" value="${servlet.session-cookie.comment:#{null}}"/>
         <property name="domain" value="${servlet.session-cookie.domain:#{null}}"/>
@@ -59,7 +59,7 @@
         <property name="name" value="${servlet.session-cookie.name:#{null}}"/>
         <property name="path" value="${servlet.session-cookie.path:#{null}}"/>
         <property name="secure" value="${servlet.session-cookie.secure:${require_https:false}}"/>
-    </bean>
+    </bean>-->
 
     <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
         <property name="contentNegotiationManager" ref="contentNegotiationManager"/>
@@ -547,7 +547,7 @@
         <property name="logoutDefaultRedirectUrl" value="${logout.redirect.url:/login}" />
         <property name="logoutDisableRedirectParameter" value="${logout.redirect.parameter.disable:false}"/>
         <property name="prompts" ref="prompts"/>
-        <property name="branding" value="#{@config['login']['branding']}" />
+        <property name="branding" value="#{@config['login']==null ? null : @config['login']['branding']}" />
         <property name="samlSpPrivateKey" value="${login.serviceProviderKey:#{null}}" />
         <property name="samlSpPrivateKeyPassphrase" value="${login.serviceProviderKeyPassword:#{null}}" />
         <property name="samlSpCertificate" value="${login.serviceProviderCertificate:#{null}}" />

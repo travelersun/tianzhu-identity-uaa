@@ -24,6 +24,7 @@
         <module>server</module>
         <module>statsd</module>
         <module>uaa</module>
+        <module>uaa-app</module>
     </modules>
 
     <properties>
