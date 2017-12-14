@@ -276,7 +276,7 @@
     </bean>
 
     <bean id="metricsFilter" class="com.tianzhu.identity.uaa.metrics.UaaMetricsFilter">
-        <property name="enabled" value="${metrics.enabled:false}"/>
+        <property name="enabled" value="${metrics.enabled:true}"/>
         <property name="perRequestMetrics" value="${metrics.perRequestMetrics:false}"/>
     </bean>
 

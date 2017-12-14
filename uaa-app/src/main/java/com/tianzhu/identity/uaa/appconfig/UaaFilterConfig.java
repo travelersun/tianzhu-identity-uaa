@@ -2,6 +2,7 @@ package com.tianzhu.identity.uaa.appconfig;
 
 import com.tianzhu.identity.uaa.web.BackwardsCompatibleScopeParsingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ public class UaaFilterConfig {
         registration.addInitParameter("contextAttribute","org.springframework.web.servlet.FrameworkServlet.CONTEXT.spring");
         registration.setName("springSecurityFilterChain");
         registration.addUrlPatterns("/*");
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER);
         return registration;
     }
 
@@ -33,14 +34,15 @@ public class UaaFilterConfig {
         FilterRegistrationBean registration = new FilterRegistrationBean(backwardsCompatibleScopeParameterFilter);
         registration.setName("backwardsCompatibleScopeParameter");
         registration.addUrlPatterns("/*");
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE+1);
+        registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER+1);
         return registration;
     }
 
     @Bean
     public Filter delegatingFilterProxy(){
 
-        return new DelegatingFilterProxy("org.springframework.security.filterChainProxy");
+        //return new DelegatingFilterProxy("org.springframework.security.filterChainProxy");
+        return new DelegatingFilterProxy("springSecurityFilterChain");
 
     }
 

@@ -28,7 +28,7 @@ logging.level.org.springframework.security.ldap.authentication.LdapAuthenticatio
 logging.level.org.springframework.security.ldap.search.FilterBasedLdapUserSearch: INFO
 logging.level.org.springframework.security.web.util.matcher.AntPathRequestMatcher: WARN
 server:
-  context-path: /
+  context-path: /uaa
   session:
     cookie:
       comment:
