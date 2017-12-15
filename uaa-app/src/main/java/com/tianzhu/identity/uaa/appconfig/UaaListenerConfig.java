@@ -12,13 +12,15 @@ import org.springframework.web.context.request.RequestContextListener;
 @Configuration
 public class UaaListenerConfig {
 
+
+    /*
     @Bean
     public ServletListenerRegistrationBean servletListenerRegistrationBean(){
         ServletListenerRegistrationBean servletListenerRegistrationBean = new ServletListenerRegistrationBean();
         servletListenerRegistrationBean.setListener(new RequestContextListener());
         //servletListenerRegistrationBean.setOrder(10);
         return servletListenerRegistrationBean;
-    }
+    }*/
 
     @Bean
     public ServletListenerRegistrationBean httpSessionEventPublisherListenerRegistrationBean(){
@@ -26,6 +28,11 @@ public class UaaListenerConfig {
         servletListenerRegistrationBean.setListener(new HttpSessionEventPublisher());
         //servletListenerRegistrationBean.setOrder(10);
         return servletListenerRegistrationBean;
+    }
+
+    @Bean
+    public RequestContextListener requestContextListener(){
+        return new RequestContextListener();
     }
 
 }
