@@ -22,9 +22,10 @@
         <module>model</module>
         <module>samples</module>
         <module>server</module>
+	    <module>server-core</module>
         <module>statsd</module>
         <module>uaa</module>
-        <module>uaa-app</module>
+	    <module>uaa-boot-app</module>
     </modules>
 
     <properties>
@@ -124,6 +125,11 @@
             <dependency>
                 <groupId>com.tianzhu</groupId>
                 <artifactId>tianzhu-identity-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tianzhu</groupId>
+                <artifactId>tianzhu-identity-server-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
