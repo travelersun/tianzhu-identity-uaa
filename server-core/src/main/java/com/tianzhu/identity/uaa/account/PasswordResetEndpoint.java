@@ -1,0 +1,160 @@
+/*******************************************************************************
+ *     Cloud Foundry
+ *     Copyright (c) [2009-2016] Pivotal Software, Inc. All Rights Reserved.
+ *
+ *     This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ *     You may not use this product except in compliance with the License.
+ *
+ *     This product includes a number of subcomponents with
+ *     separate copyright notices and license terms. Your use of these
+ *     subcomponents is subject to the terms and conditions of the
+ *     subcomponent's license, as noted in the LICENSE file.
+ *******************************************************************************/
+package com.tianzhu.identity.uaa.account;
+
+import com.tianzhu.identity.uaa.authentication.InvalidCodeException;
+import com.tianzhu.identity.uaa.codestore.ExpiringCode;
+import com.tianzhu.identity.uaa.codestore.ExpiringCodeStore;
+import com.tianzhu.identity.uaa.codestore.ExpiringCodeType;
+import com.tianzhu.identity.uaa.constants.OriginKeys;
+import com.tianzhu.identity.uaa.scim.ScimUser;
+import com.tianzhu.identity.uaa.scim.exception.InvalidPasswordException;
+import com.tianzhu.identity.uaa.scim.exception.ScimException;
+import com.tianzhu.identity.uaa.scim.exception.ScimResourceNotFoundException;
+import com.tianzhu.identity.uaa.util.JsonUtils;
+import com.tianzhu.identity.uaa.web.ConvertingExceptionView;
+import com.tianzhu.identity.uaa.web.ExceptionReport;
+import com.tianzhu.identity.uaa.zone.IdentityZoneHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.util.OAuth2Utils;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.View;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.http.HttpStatus.*;
+
+@Controller
+public class PasswordResetEndpoint {
+
+
+    private final ResetPasswordService resetPasswordService;
+
+    //@Autowired
+    private HttpMessageConverter<?>[] messageConverters = new RestTemplate().getMessageConverters().toArray(new HttpMessageConverter<?>[0]);
+
+    @Autowired
+    @Qualifier("codeStore")
+    private ExpiringCodeStore codeStore;
+
+    @Autowired
+    public PasswordResetEndpoint(@Qualifier("resetPasswordService") ResetPasswordService resetPasswordService) {
+        this.resetPasswordService = resetPasswordService;
+    }
+
+    public void setMessageConverters(HttpMessageConverter<?>[] messageConverters) {
+        this.messageConverters = messageConverters;
+    }
+
+    @RequestMapping(value = "/password_resets", method = RequestMethod.POST)
+    public ResponseEntity<PasswordResetResponse> resetPassword(@RequestBody String email,
+                                                               @RequestParam(required = false, value = "client_id") String clientId,
+                                                               @RequestParam(required = false, value = "redirect_uri") String redirectUri) throws IOException {
+        if (clientId == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof OAuth2Authentication) {
+                OAuth2Authentication oAuth2Authentication = (OAuth2Authentication) authentication;
+                clientId = oAuth2Authentication.getOAuth2Request().getClientId();
+            }
+        }
+        PasswordResetResponse response = new PasswordResetResponse();
+        try {
+            ForgotPasswordInfo forgotPasswordInfo = resetPasswordService.forgotPassword(email, clientId, redirectUri);
+            response.setChangeCode(forgotPasswordInfo.getResetPasswordCode().getCode());
+            response.setUserId(forgotPasswordInfo.getUserId());
+            return new ResponseEntity<>(response, CREATED);
+        } catch (ConflictException e) {
+            response.setUserId(e.getUserId());
+            return new ResponseEntity<>(response, CONFLICT);
+        } catch (NotFoundException e) {
+            return new ResponseEntity<>(NOT_FOUND);
+        }
+    }
+
+    private ExpiringCode getExpiringCode(String code) {
+        ExpiringCode expiringCode = codeStore.retrieveCode(code, IdentityZoneHolder.get().getId());
+        if (expiringCode == null) {
+            throw new InvalidCodeException("invalid_code", "Sorry, your reset password link is no longer valid. Please request a new one", 422);
+        }
+        return expiringCode;
+    }
+
+    @RequestMapping(value = "/password_change", method = RequestMethod.POST)
+    public ResponseEntity<LostPasswordChangeResponse> changePassword(@RequestBody LostPasswordChangeRequest passwordChangeRequest) {
+        ResponseEntity<LostPasswordChangeResponse> responseEntity;
+        if (passwordChangeRequest.getChangeCode() != null) {
+            try {
+                ExpiringCode expiringCode = getExpiringCode(passwordChangeRequest.getChangeCode());
+                ResetPasswordService.ResetPasswordResponse reset = resetPasswordService.resetPassword(expiringCode, passwordChangeRequest.getNewPassword());
+                ScimUser user = reset.getUser();
+                ExpiringCode loginCode = getCode(user.getId(), user.getUserName(), reset.getClientId());
+                LostPasswordChangeResponse response = new LostPasswordChangeResponse();
+                response.setUserId(user.getId());
+                response.setUsername(user.getUserName());
+                response.setEmail(user.getPrimaryEmail());
+                response.setLoginCode(loginCode.getCode());
+                return new ResponseEntity<>(response, OK);
+            } catch (BadCredentialsException e) {
+                return new ResponseEntity<>(UNAUTHORIZED);
+            } catch (ScimResourceNotFoundException e) {
+                return new ResponseEntity<>(NOT_FOUND);
+            } catch (InvalidPasswordException | InvalidCodeException e) {
+                throw e;
+            } catch (Exception e) {
+                return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            responseEntity = new ResponseEntity<>(BAD_REQUEST);
+        }
+        return responseEntity;
+    }
+
+    private ExpiringCode getCode(String id, String username, String clientId) {
+        Map<String, String> codeData = new HashMap<>();
+        codeData.put("user_id", id);
+        codeData.put("username", username);
+        codeData.put(OAuth2Utils.CLIENT_ID, clientId);
+        codeData.put(OriginKeys.ORIGIN, OriginKeys.UAA);
+        return codeStore.generateCode(JsonUtils.writeValueAsString(codeData), new Timestamp(System.currentTimeMillis() + 5 * 60 * 1000), ExpiringCodeType.AUTOLOGIN.name(), IdentityZoneHolder.get().getId());
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public View handleException(InvalidPasswordException t) throws ScimException {
+        return new ConvertingExceptionView(new ResponseEntity<>(new ExceptionReport(
+                t, false), UNPROCESSABLE_ENTITY),
+                messageConverters);
+    }
+
+    @ExceptionHandler(InvalidCodeException.class)
+    public View handleCodeException(InvalidCodeException t) throws ScimException {
+        return new ConvertingExceptionView(new ResponseEntity<>(new ExceptionReport(
+            t, false), UNPROCESSABLE_ENTITY),
+            messageConverters);
+    }
+
+    public void setCodeStore(ExpiringCodeStore codeStore) {
+        this.codeStore = codeStore;
+    }
+}
