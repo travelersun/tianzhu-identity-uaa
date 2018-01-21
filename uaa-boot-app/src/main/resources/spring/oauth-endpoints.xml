@@ -42,24 +42,6 @@
     </bean>
 
 
-    <bean id="passcodeAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.PasscodeAuthenticationFilter">
-        <constructor-arg ref="userDatabase" />
-        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
-        <constructor-arg ref="authorizationRequestManager"/>
-        <constructor-arg ref="codeStore"/>
-        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
-        <property name="parameterNames">
-            <list>
-                <value>username</value>
-                <value>password</value>
-                <value>passcode</value>
-                <value>credentials</value>
-                <value>origin</value>
-                <value>user_id</value>
-            </list>
-        </property>
-    </bean>
-
     <bean id="passcodeTokenMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
         <constructor-arg value="/oauth/token" />
         <property name="accept">
@@ -99,30 +81,11 @@
     </bean>
 
 
-    <bean id="clientAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.ClientBasicAuthenticationFilter">
-        <constructor-arg ref="clientAuthenticationManager" />
-        <constructor-arg ref="basicAuthenticationEntryPoint" />
-        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
-        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
-    </bean>
-
-    <bean id="clientParameterAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.ClientParametersAuthenticationFilter">
-        <property name="clientAuthenticationManager" ref="clientAuthenticationManager"/>
-        <property name="authenticationEntryPoint" ref="basicAuthenticationEntryPoint"/>
-    </bean>
 
     <bean id="compositeAuthenticationManager" class="com.tianzhu.identity.uaa.authentication.manager.CompositeAuthenticationManager" />
 
 
 
-    <bean id="tokenEndpointAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.BackwardsCompatibleTokenEndpointAuthenticationFilter">
-        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
-        <constructor-arg ref="authorizationRequestManager"/>
-        <constructor-arg ref="samlWebSSOProcessingFilter"/>
-        <constructor-arg ref="xOauthAuthenticationManager"/>
-        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
-        <property name="authenticationEntryPoint" ref="basicAuthenticationEntryPoint" />
-    </bean>
 
     <bean id="jwtTokenGranter" class="com.tianzhu.identity.uaa.oauth.token.JwtTokenGranter">
         <constructor-arg name="tokenServices" ref="tokenServices"/>
@@ -196,17 +159,6 @@
     </bean>
 
 
-    <bean id="authzAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
-        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
-        <property name="parameterNames">
-            <list>
-                <value>username</value>
-                <value>password</value>
-                <value>passcode</value>
-                <value>credentials</value>
-            </list>
-        </property>
-    </bean>
 
     <bean id="promptOauthAuthorizeApiRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
         <constructor-arg value="/oauth/authorize" />
@@ -238,12 +190,6 @@
         <property name="uaaTokenServices" ref="tokenServices"/>
         <property name="userDatabase" ref="userDatabase"/>
         <property name="externalMembershipManager" ref="externalGroupMembershipManager"/>
-    </bean>
-
-
-    <bean id="xOauthCallbackAuthenticationFilter" class="com.tianzhu.identity.uaa.provider.oauth.XOAuthAuthenticationFilter">
-        <constructor-arg name="xOAuthAuthenticationManager" ref="xOauthAuthenticationManager" />
-        <constructor-arg name="successHandler" ref="accountSavingAuthenticationSuccessHandler"/>
     </bean>
 
 

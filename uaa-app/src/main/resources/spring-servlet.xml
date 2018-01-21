@@ -1,0 +1,1726 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Cloud Foundry
+    Copyright (c) [2009-2014] Pivotal Software, Inc. All Rights Reserved.
+
+    This product is licensed to you under the Apache License, Version 2.0 (the "License").
+    You may not use this product except in compliance with the License.
+
+    This product includes a number of subcomponents with
+    separate copyright notices and license terms. Your use of these
+    subcomponents is subject to the terms and conditions of the
+    subcomponent's license, as noted in the LICENSE file.
+
+-->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+       xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+        http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+
+    <context:property-placeholder properties-ref="applicationProperties" />
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="contentNegotiationManager" ref="contentNegotiationManager"/>
+        <property name="useSuffixPatternMatch" value="false"/>
+        <property name="order" value="1"/>
+    </bean>
+
+    <bean name="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean" primary="true">
+        <property name="favorPathExtension" value="false"/>
+        <property name="favorParameter" value="true"/>
+        <property name="mediaTypes">
+            <value>
+                json=application/json
+                xml=application/xml
+                html=test/html
+            </value>
+        </property>
+    </bean>
+
+    <bean id="disableIdTokenResponseFilter" class="com.tianzhu.identity.uaa.oauth.DisableIdTokenResponseTypeFilter">
+        <constructor-arg index="0" value="${oauth.id_token.disable:false}"/>
+        <constructor-arg index="1">
+            <list>
+                <value>/**/oauth/authorize</value>
+                <value>/oauth/authorize</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <sec:http name="secFilterOpen01" pattern="/resources/**" security="none" />
+    <sec:http name="secFilterOpen02" pattern="/square-logo.png" security="none" />
+    <sec:http name="secFilterOpen03" pattern="/info" security="none" />
+    <sec:http name="secFilterOpen04" pattern="/password/**" security="none" />
+    <sec:http name="secFilterOpen05Healthz" pattern="/healthz/**" security="none" />
+    <sec:http name="secFilterOpen06" pattern="/saml/web/**" security="none" />
+    <sec:http name="secFilterOpen07" pattern="/vendor/**" security="none" />
+    <!--<sec:http pattern="/login" security="none" />-->
+    <sec:http name="secFilterOpen08" pattern="/error" security="none" />
+    <sec:http name="secFilterOpen11" pattern="/email_sent" security="none" />
+    <sec:http name="secFilterOpen12" pattern="/create_account*" security="none" />
+    <sec:http name="secFilterOpen13" pattern="/accounts/email_sent" security="none" />
+    <sec:http name="secFilterCsrfLandingPage14" pattern="/invalid_request" security="none" />
+    <sec:http name="secFilterOpen15" pattern="/saml_error" security="none" />
+    <sec:http name="secFilterOpen16" pattern="/favicon.ico" security="none" />
+    <sec:http name="secFilterOpen17" pattern="/oauth_error" security="none" />
+    <sec:http name="secFilterOpen18" pattern="/session" security="none" />
+    <sec:http name="secFilterWellKnownOpen19" pattern="/oauth/token/.well-known/openid-configuration" security="none" />
+    <sec:http name="secFilterWellKnownOpen20" pattern="/.well-known/openid-configuration" security="none" />
+
+    <bean id="oauth2TokenParseFilter" class="java.lang.Class" factory-method="forName">
+        <constructor-arg value="org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter"/>
+    </bean>
+    <bean id="utf8ConversionFilter" class="com.tianzhu.identity.uaa.authentication.UTF8ConversionFilter"/>
+    <bean id="corsFilter" class="com.tianzhu.identity.uaa.security.web.CorsFilter">
+        <property name="corsAllowedUris"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']['uris']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']['uris']}"/>
+
+        <property name="corsAllowedOrigins"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']['origins']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['default']['allowed']['origins']}"/>
+
+        <property name="corsAllowedHeaders"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language') :
+                           @config['cors']['default']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language') :
+                           @config['cors']['default']['allowed']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language') :
+                           @config['cors']['default']['allowed']['headers']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language') :
+                           @config['cors']['default']['allowed']['headers']}"/>
+
+        <property name="corsAllowedMethods"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('GET','POST','PUT','OPTIONS','DELETE','PATCH') :
+                           @config['cors']['default']==null ? T(java.util.Arrays).asList('GET','POST','PUT','OPTIONS','DELETE','PATCH') :
+                           @config['cors']['default']['allowed']==null ? T(java.util.Arrays).asList('GET','POST','PUT','OPTIONS','DELETE','PATCH') :
+                           @config['cors']['default']['allowed']['methods']==null ? T(java.util.Arrays).asList('GET','POST','PUT','OPTIONS','DELETE','PATCH') :
+                           @config['cors']['default']['allowed']['methods']}"/>
+
+
+        <property name="corsAllowedCredentials"
+                  value="#{@config['cors']==null ? false :
+                           @config['cors']['default']==null ? false :
+                           @config['cors']['default']['allowed']==null ? false :
+                           @config['cors']['default']['allowed']['credentials']==null ? false :
+                           @config['cors']['default']['allowed']['credentials']}"/>
+
+        <property name="corsMaxAge"
+                  value="#{@config['cors']==null ? 1728000 :
+                           @config['cors']['default']==null ? 1728000 :
+                           @config['cors']['default']['max_age']==null ? 1728000 :
+                           @config['cors']['default']['max_age']}"/>
+
+        <property name="corsXhrAllowedUris"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']['uris']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']['uris']}"/>
+
+        <property name="corsXhrAllowedOrigins"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']['origins']==null ? T(java.util.Arrays).asList('.*') :
+                           @config['cors']['xhr']['allowed']['origins']}"/>
+
+        <property name="corsXhrAllowedHeaders"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language', 'X-Requested-With') :
+                           @config['cors']['xhr']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language', 'X-Requested-With') :
+                           @config['cors']['xhr']['allowed']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language', 'X-Requested-With') :
+                           @config['cors']['xhr']['allowed']['headers']==null ? T(java.util.Arrays).asList('Accept','Authorization','Content-Type','Accept-Language','Content-Language', 'X-Requested-With') :
+                           @config['cors']['xhr']['allowed']['headers']}"/>
+
+        <property name="corsXhrAllowedMethods"
+                  value="#{@config['cors']==null ? T(java.util.Arrays).asList('GET','OPTIONS') :
+                           @config['cors']['xhr']==null ? T(java.util.Arrays).asList('GET','OPTIONS') :
+                           @config['cors']['xhr']['allowed']==null ? T(java.util.Arrays).asList('GET','OPTIONS') :
+                           @config['cors']['xhr']['allowed']['methods']==null ? T(java.util.Arrays).asList('GET','OPTIONS') :
+                           @config['cors']['xhr']['allowed']['methods']}"/>
+
+
+        <property name="corsXhrAllowedCredentials"
+                  value="#{@config['cors']==null ? true :
+                           @config['cors']['xhr']==null ? true :
+                           @config['cors']['xhr']['allowed']==null ? true :
+                           @config['cors']['xhr']['allowed']['credentials']==null ? true :
+                           @config['cors']['xhr']['allowed']['credentials']}"/>
+
+        <property name="corsXhrMaxAge"
+                  value="#{@config['cors']==null ? 1728000 :
+                           @config['cors']['xhr']==null ? 1728000 :
+                           @config['cors']['xhr']['max_age']==null ? 1728000 :
+                           @config['cors']['xhr']['max_age']}"/>
+    </bean>
+
+
+    <bean class="com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor">
+        <property name="requireHttps" value="${require_https:false}" />
+        <property name="dumpRequests" value="${dump_requests:false}" />
+        <property name="redirectToHttps">
+            <list>
+                <value>uiSecurity</value>
+            </list>
+        </property>
+        <property name="ignore">
+            <list>
+                <value>secFilterOpen05Healthz</value>
+            </list>
+        </property>
+        <property name="errorMap">
+            <map>
+                <entry key="org.springframework.dao.NonTransientDataAccessException">
+                    <bean class="com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor$ReasonPhrase">
+                        <constructor-arg index="0" value="503"/>
+                        <constructor-arg index="1" value="Database unavailable. Retry later."/>
+                    </bean>
+                </entry>
+            </map>
+        </property>
+        <property name="additionalFilters">
+            <map>
+                <entry value-ref="metricsFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(0)}" />
+                <entry value-ref="headerFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(1)}" />
+                <entry value-ref="utf8ConversionFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(2)}" />
+                <entry value-ref="corsFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(3)}" />
+                <entry value-ref="limitedModeUaaFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(4)}" />
+                <entry value-ref="identityZoneResolvingFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(5)}"/>
+                <!-- Add in a flag that removes id_token from /oauth/authorize requests-->
+                <entry value-ref="disableIdTokenResponseFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(6)}"/>
+                <!-- Zone switcher goes *after* class OAuth2AuthenticationProcessingFilter as it requires a token to be present to work -->
+                <entry value-ref="identityZoneSwitchingFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).after(@oauth2TokenParseFilter)}"/>
+                <entry value-ref="userManagementSecurityFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).after(T(com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter))}"/>
+                <entry value-ref="userManagementFilter"
+                       key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).after(T(com.tianzhu.identity.uaa.scim.DisableUserManagementSecurityFilter))}"/>
+                <entry value-ref="sessionResetFilter" key="#{T(com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor.FilterPosition).position(102)}"/>
+            </map>
+        </property>
+    </bean>
+
+
+    <bean id="headerFilter" class="com.tianzhu.identity.uaa.web.HeaderFilter">
+        <constructor-arg value="#{@config['servlet']==null ? @defaultFilteredHeaders : @config['servlet']['filtered-headers'] == null ? @defaultFilteredHeaders : @config['servlet']['filtered-headers']}"/>
+    </bean>
+
+    <bean id="metricsFilter" class="com.tianzhu.identity.uaa.metrics.UaaMetricsFilter">
+        <property name="enabled" value="${metrics.enabled:true}"/>
+        <property name="perRequestMetrics" value="${metrics.perRequestMetrics:false}"/>
+    </bean>
+
+    <bean id="userManagementSecurityFilter" class="com.tianzhu.identity.uaa.scim.DisableUserManagementSecurityFilter">
+        <constructor-arg ref="identityProviderProvisioning"/>
+    </bean>
+
+    <bean id="userManagementFilter" class="com.tianzhu.identity.uaa.scim.DisableInternalUserManagementFilter">
+        <constructor-arg ref="identityProviderProvisioning"/>
+    </bean>
+
+    <bean id="identityZoneResolvingFilter" class="com.tianzhu.identity.uaa.zone.IdentityZoneResolvingFilter">
+        <property name="identityZoneProvisioning" ref="identityZoneProvisioning"/>
+        <property name="defaultInternalHostnames">
+            <set>
+                <value>#{T(com.tianzhu.identity.uaa.util.UaaUrlUtils).getHostForURI(@uaaUrl)}</value>
+                <value>#{T(com.tianzhu.identity.uaa.util.UaaUrlUtils).getHostForURI(@loginUrl)}</value>
+                <value>localhost</value>
+            </set>
+        </property>
+        <property name="additionalInternalHostnames" value="#{@config['zones']==null ? null : @config['zones']['internal']==null ? null : @config['zones']['internal']['hostnames']}"/>
+    </bean>
+
+    <bean id="sessionResetFilter" class="com.tianzhu.identity.uaa.authentication.SessionResetFilter">
+        <constructor-arg>
+            <bean class="org.springframework.security.web.DefaultRedirectStrategy"/>
+        </constructor-arg>
+        <constructor-arg value="/login"/>
+        <constructor-arg ref="userDatabase"/>
+    </bean>
+
+    <bean id="identityZoneSwitchingFilter" class="com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter"/>
+
+
+    <oauth:resource-server id="oauthResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="oauth" entry-point-ref="oauthAuthenticationEntryPoint" ></oauth:resource-server>
+
+    <http name="secFilterLoginServerAuthenticate" request-matcher-ref="loginAuthenticateRequestMatcher" create-session="never" entry-point-ref="oauthAuthenticationEntryPoint"
+          authentication-manager-ref="loginAuthenticationMgr" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <!-- scope authentication filter configured with a scope authentication manager -->
+        <custom-filter ref="oauthLoginScopeAuthenticatingFilter" after="PRE_AUTH_FILTER"/>
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <sec:http name="secFilterAuthenticateOpen"  pattern="/authenticate/**" security="none" />
+
+    <http name="secFilterLoginServerAuthorize" request-matcher-ref="loginAuthorizeRequestMatcher" create-session="never" entry-point-ref="oauthAuthenticationEntryPoint"
+          authentication-manager-ref="loginAuthenticationMgr" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <!-- scope authentication filter configured with a scope authentication manager -->
+        <custom-filter ref="oauthLoginScopeAuthenticatingFilter" after="PRE_AUTH_FILTER"/>
+        <custom-filter ref="loginAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http name="secFilterLoginServerToken" request-matcher-ref="loginTokenRequestMatcher" create-session="never" entry-point-ref="oauthAuthenticationEntryPoint"
+          authentication-manager-ref="loginAuthenticationMgr" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <!--
+          This represents a /oauth/token requests that gets passed through
+          from the login server. It assumes that the User has been authenticated
+          It requires that:
+           - userid parameter exists
+           - client_id and client_secret are present
+           - Bearer token belongs to login server (oauth.login) validated as resource="oauth"
+        -->
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <!-- the oauthResourceAuthenticationFilter validates the Bearer token
+             TODO, if there is no token this filter must throw.
+             What we need is scope=oauth.login
+         -->
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <!-- scope authentication filter configured with a scope authentication manager -->
+        <custom-filter ref="oauthLoginScopeAuthenticatingFilter" after="PRE_AUTH_FILTER"/>
+        <!-- filter to validate the client_id and client_secret -->
+        <custom-filter ref="loginClientParameterAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <!-- The loginServerTokenEndpointAuthenticationFilter validates the user or creates one-->
+        <custom-filter ref="loginServerTokenEndpointAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <bean id="oauthLoginScopeAuthenticatingFilter" class="com.tianzhu.identity.uaa.authentication.manager.ScopeAuthenticationFilter">
+        <property name="authenticationManager" ref="oauthLoginAuthManager"/>
+    </bean>
+
+
+    <bean id="loginServerTokenEndpointAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.LoginServerTokenEndpointFilter">
+        <constructor-arg ref="loginAuthenticationMgr" />
+        <constructor-arg ref="authorizationRequestManager"/>
+        <constructor-arg ref="addNewUserParameters"/>
+        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
+    </bean>
+
+    <bean id="loginClientParameterAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.LoginClientParametersAuthenticationFilter">
+        <property name="clientAuthenticationManager" ref="clientAuthenticationManager"/>
+    </bean>
+
+    <!-- Support for older login servers -->
+    <http name="secFilterLoginServerAuthorizeOld" request-matcher-ref="loginAuthorizeRequestMatcherOld" create-session="always" entry-point-ref="oauthAuthenticationEntryPoint"
+          authentication-manager-ref="loginAuthenticationMgr" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <custom-filter ref="loginAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <bean id="loginAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
+        <constructor-arg ref="loginAuthenticationMgr" />
+        <property name="parameterNames" ref="addNewUserParameters"/>
+    </bean>
+
+
+    <http name="secFilterLoginServerPasswordEndpoints" create-session="stateless" entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="emptyAuthenticationManager"
+          pattern="/password_*" xmlns="http://www.springframework.org/schema/security"  use-expressions="true">
+        <intercept-url pattern="/**" access="#oauth2.hasScope('oauth.login') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" />
+        <custom-filter ref="oauthWithoutResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <http name="secFilterLoginServerEmailEndpoints" create-session="stateless" entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="emptyAuthenticationManager"
+          access-decision-manager-ref="accessDecisionManager" pattern="/email_*" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="scope=oauth.login" />
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <oauth:authorization-server
+            client-details-service-ref="jdbcClientDetailsService"
+            token-services-ref="tokenServices" user-approval-handler-ref="userManagedApprovalHandler"
+            authorization-request-manager-ref="authorizationRequestManager" request-validator-ref="oauth2RequestValidator">
+        <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />
+        <oauth:implicit />
+        <oauth:refresh-token />
+        <oauth:client-credentials />
+        <oauth:password authentication-manager-ref="compositeAuthenticationManager" />
+    </oauth:authorization-server>
+
+
+    <http  name="tokenRevocationFilter"
+           pattern="/oauth/token/revoke/**"
+           create-session="stateless"
+           authentication-manager-ref="emptyAuthenticationManager"
+           entry-point-ref="oauthAuthenticationEntryPoint"
+           xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/oauth/token/revoke/client/**" access="#oauth2.hasScope('tokens.revoke')" />
+        <intercept-url pattern="/oauth/token/revoke/user/**/client/**" access="#oauth2.hasScope('uaa.admin') or #oauth2.hasScope('tokens.revoke') or (@self.isUserTokenRevocationForSelf(request, 4) and @self.isClientTokenRevocationForSelf(request, 6))" />
+        <intercept-url pattern="/oauth/token/revoke/user/**" access="#oauth2.hasScope('uaa.admin') or (#oauth2.hasScope('tokens.revoke') and @self.isUserTokenRevocationForSelf(request, 4))" />
+        <intercept-url pattern="/oauth/token/revoke/**" access="#oauth2.hasScope('tokens.revoke') or @self.isTokenRevocationForSelf(request, 3)" method="DELETE"/>
+        <intercept-url pattern="/**" access="denyAll" />
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http  name="tokenListFilter"
+           pattern="/oauth/token/list/**"
+           create-session="stateless"
+           authentication-manager-ref="emptyAuthenticationManager"
+           entry-point-ref="oauthAuthenticationEntryPoint"
+           xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/oauth/token/list/user/**" access="#oauth2.hasScope('tokens.list')" method="GET"/>
+        <intercept-url pattern="/oauth/token/list/client/**" access="#oauth2.hasScope('tokens.list')" method="GET"/>
+        <intercept-url pattern="/**" access="denyAll" />
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- Owner password flow for external authentication (SAML) -->
+    <!-- Pattern: /oauth/token parameters:{grant_type=password,passcode= -->
+    <http name="tokenEndpointSecurityForPasscodes" request-matcher-ref="passcodeTokenMatcher" create-session="stateless" use-expressions="false"
+          entry-point-ref="basicAuthenticationEntryPoint" xmlns="http://www.springframework.org/schema/security"  authentication-manager-ref="emptyAuthenticationManager">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <anonymous enabled="false" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="clientParameterAuthenticationFilter" before="BASIC_AUTH_FILTER"/>
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER" />
+        <custom-filter ref="passcodeAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <bean id="passcodeAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.PasscodeAuthenticationFilter">
+        <constructor-arg ref="userDatabase" />
+        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
+        <constructor-arg ref="authorizationRequestManager"/>
+        <constructor-arg ref="codeStore"/>
+        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
+        <property name="parameterNames">
+            <list>
+                <value>username</value>
+                <value>password</value>
+                <value>passcode</value>
+                <value>credentials</value>
+                <value>origin</value>
+                <value>user_id</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <!-- Version of the /oauth/token endpoint for stateless clients
+         /oauth/token Authorization: Bearer <access_token> grant_type=user_token&client_id=<value>&response_type=token
+    -->
+    <http name="statelessTokenApiSecurity" request-matcher-ref="oauthTokenApiRequestMatcher" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/**" access="#oauth2.hasScope('uaa.user')" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <anonymous enabled="false" />
+        <csrf disabled="true"/>
+    </http>
+
+    <!--/oauth/token with any match -->
+    <http name="tokenEndpointSecurity" create-session="stateless" authentication-manager-ref="clientAuthenticationManager" use-expressions="false"
+          pattern="/oauth/token/**" entry-point-ref="basicAuthenticationEntryPoint" xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <anonymous enabled="false" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER" />
+        <custom-filter ref="clientParameterAuthenticationFilter" before="BASIC_AUTH_FILTER" />
+        <custom-filter ref="tokenEndpointAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- Version of the /authorize endpoint for stateless clients such as cf
+         /oauth/authorize response_type=token&source=credentials
+    -->
+    <http name="statelessAuthzEndpointSecurity" request-matcher-ref="oauthAuthorizeRequestMatcher" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="zoneAwareAuthzAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="authzAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- Version of the /authorize endpoint for stateless clients such as cf
+         /oauth/authorize Authorization: Bearer <access_token> response_type=code&client_id=<value>&grant_type=authorization_code
+    -->
+    <http name="statelessAuthorizeApiSecurity" request-matcher-ref="oauthAuthorizeApiRequestMatcher" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/**" access="#oauth2.hasScope('uaa.user')" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <anonymous enabled="false" />
+        <csrf disabled="true"/>
+    </http>
+
+    <bean id="clientAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.ClientBasicAuthenticationFilter">
+        <constructor-arg ref="clientAuthenticationManager" />
+        <constructor-arg ref="basicAuthenticationEntryPoint" />
+        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+    </bean>
+
+    <bean id="clientParameterAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.ClientParametersAuthenticationFilter">
+        <property name="clientAuthenticationManager" ref="clientAuthenticationManager"/>
+        <property name="authenticationEntryPoint" ref="basicAuthenticationEntryPoint"/>
+    </bean>
+
+
+    <bean id="tokenEndpointAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.BackwardsCompatibleTokenEndpointAuthenticationFilter">
+        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
+        <constructor-arg ref="authorizationRequestManager"/>
+        <constructor-arg ref="samlWebSSOProcessingFilter"/>
+        <constructor-arg ref="xOauthAuthenticationManager"/>
+        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
+        <property name="authenticationEntryPoint" ref="basicAuthenticationEntryPoint" />
+    </bean>
+
+
+    <bean id="authzAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
+        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
+        <property name="parameterNames">
+            <list>
+                <value>username</value>
+                <value>password</value>
+                <value>passcode</value>
+                <value>credentials</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <http name="promptStatelessTokenApiSecurity"
+          disable-url-rewriting="true"
+          entry-point-ref="promptOauthAuthorizeEntryPoint"
+          use-expressions="false"
+          request-matcher-ref="promptOauthAuthorizeApiRequestMatcher"
+          create-session="never"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <bean id="xOauthCallbackAuthenticationFilter" class="com.tianzhu.identity.uaa.provider.oauth.XOAuthAuthenticationFilter">
+        <constructor-arg name="xOAuthAuthenticationManager" ref="xOauthAuthenticationManager" />
+        <constructor-arg name="successHandler" ref="accountSavingAuthenticationSuccessHandler"/>
+    </bean>
+
+
+    <http name="xOauthCallbackEndpointSecurity" request-matcher-ref="xOauthCallbackRequestMatcher" entry-point-ref="loginEntryPoint"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="**" access="IS_AUTHENTICATED_FULLY"/>
+        <custom-filter ref="xOauthCallbackAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <anonymous enabled="false" />
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- For backwards compatibility to the old way of posting credentials to /authorize endpoint
+         /oauth/authorize response_type=token&credentials={
+    -->
+    <http name="oldAuthzEndpointSecurity" request-matcher-ref="oauthAuthorizeRequestMatcherOld" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint" authentication-manager-ref="zoneAwareAuthzAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="backwardsCompatibleScopeParameter" position="FIRST"/>
+        <custom-filter ref="authzAuthenticationFilter" position="FORM_LOGIN_FILTER" />
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <oauth:resource-server id="oauthWithoutResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
+
+    <http name="groupEndpointSecurity" pattern="/Groups/**" create-session="stateless" entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager" xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/Groups/zones" access="#oauth2.hasScopeInAuthZone('scim.zones')" />
+        <intercept-url pattern="/Groups/zones/**" access="#oauth2.hasScopeInAuthZone('scim.zones')" />
+        <intercept-url pattern="/Groups/External" access="#oauth2.hasScope('scim.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="GET" />
+        <intercept-url pattern="/Groups/External" access="#oauth2.hasScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/Groups/External/**" access="#oauth2.hasScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="DELETE" />
+        <intercept-url pattern="/Groups/**" access="#oauth2.hasScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="DELETE" />
+        <intercept-url pattern="/Groups/**" access="#oauth2.hasAnyScope('scim.write', 'groups.update') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="PUT" />
+        <intercept-url pattern="/Groups/**" access="#oauth2.hasAnyScope('scim.write', 'groups.update') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/Groups/**" access="#oauth2.hasScope('scim.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="GET" />
+        <intercept-url pattern="/Groups/**" access="#oauth2.hasAnyScope('scim.write', 'groups.update') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="PATCH" />
+        <intercept-url pattern="/Groups" access="#oauth2.hasScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/**" access="denyAll"/>
+        <!--<intercept-url pattern="/**" access="ROLE_NONEXISTENT" />-->
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http name="scimUserPassword" pattern="/User*/*/password" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+          entry-point-ref="oauthAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager"  use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY,scope=password.write" />
+        <custom-filter ref="passwordResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http  name="scimUsers" pattern="/Users/**" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+           entry-point-ref="oauthAuthenticationEntryPoint"
+           xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/Users/*/verify-link" access="#oauth2.hasAnyScope('scim.create') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="GET" />
+        <intercept-url pattern="/Users/*/verify" access="#oauth2.hasAnyScope('scim.write','scim.create') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="GET" />
+        <intercept-url pattern="/Users/*/status" access="#oauth2.hasAnyScope('scim.write','uaa.account_status.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="PATCH" />
+        <intercept-url pattern="/Users/**" access="#oauth2.hasAnyScope('scim.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or @self.isUserSelf(request,1)" method="GET" /> <!-- add self logic -->
+        <intercept-url pattern="/Users/*" access="#oauth2.hasAnyScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="DELETE" />
+        <intercept-url pattern="/Users/*" access="#oauth2.hasAnyScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or @self.isUserSelf(request,1)" method="PUT" /> <!-- add self logic -->
+        <intercept-url pattern="/Users/*" access="#oauth2.hasAnyScope('scim.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or @self.isUserSelf(request,1)" method="PATCH" />
+        <intercept-url pattern="/Users" access="#oauth2.hasAnyScope('scim.write','scim.create') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/**" access="denyAll" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http  name="scimUserIds" pattern="/ids/Users*" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+           entry-point-ref="oauthAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager" use-expressions="false"
+           xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="scope=scim.userids" />
+        <custom-filter ref="idsResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <oauth:resource-server id="passwordResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="password" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <oauth:resource-server id="scimResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="scim" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <oauth:resource-server id="resourceAgnosticAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <!--TODO What is this resource-server actually guarding? -->
+    <oauth:resource-server id="idsResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
+
+    <http name="mfaProviderSecurity" pattern="/mfa-providers/**" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/mfa-providers"
+                       access="#oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('uaa.admin')"
+                       method="POST"/>
+        <intercept-url pattern="/mfa-providers"
+                       access="#oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('uaa.admin')"
+                       method="GET"/>
+        <intercept-url pattern="/mfa-providers/*"
+                       access="#oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('uaa.admin')"
+                       method="PUT"/>
+        <intercept-url pattern="/mfa-providers/*"
+                       access="#oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('uaa.admin')"
+                       method="GET"/>
+        <intercept-url pattern="/mfa-providers/*"
+                       access="#oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('uaa.admin')"
+                       method="DELETE"/>
+        <intercept-url pattern="/**" access="denyAll"/>
+        <csrf disabled="true"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" before="PRE_AUTH_FILTER"/>
+        <access-denied-handler ref="oauthAccessDeniedHandler"/>
+        <expression-handler ref="oauthWebExpressionHandler"/>
+    </http>
+
+
+    <http name="identityZoneSecurity" pattern="/identity-zones/**" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/identity-zones"
+                       access="#oauth2.hasScopeInAuthZone('zones.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('zones.write')"
+                       method="GET"/>
+        <intercept-url pattern="/identity-zones/*"
+                       access="#oauth2.hasScopeInAuthZone('zones.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.read') or #oauth2.hasScope('zones.write')"
+                       method="GET"/>
+        <intercept-url pattern="/identity-zones/*/clients" access="#oauth2.hasScopeInAuthZone('zones.write')"
+                       method="POST"/>
+        <intercept-url pattern="/identity-zones/*/clients/*" access="#oauth2.hasScopeInAuthZone('zones.write')"
+                       method="DELETE"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScopeInAuthZone('zones.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="POST"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScopeInAuthZone('zones.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin') or #oauth2.hasScope('zones.write')"
+                       method="PUT"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScopeInAuthZone('zones.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="DELETE"/>
+        <intercept-url pattern="/**" access="denyAll"/>
+
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" before="PRE_AUTH_FILTER"/>
+        <access-denied-handler ref="oauthAccessDeniedHandler"/>
+        <expression-handler ref="oauthWebExpressionHandler"/>
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http name="identityProviderSecurity" pattern="/identity-providers/**" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('idps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="POST"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('idps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="PUT"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('idps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="PATCH"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('idps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="DELETE"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('idps.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="GET"/>
+        <intercept-url pattern="/**" access="denyAll"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" before="PRE_AUTH_FILTER"/>
+        <expression-handler ref="oauthWebExpressionHandler"/>
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http name="serviceProviderSecurity" pattern="/saml/service-providers/**" create-session="stateless"
+          entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('sps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="POST"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('sps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="PUT"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('sps.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="GET"/>
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasScope('sps.write') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="DELETE"/>
+        <intercept-url pattern="/**" access="denyAll"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" before="PRE_AUTH_FILTER"/>
+        <expression-handler ref="oauthWebExpressionHandler"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <sec:global-method-security pre-post-annotations="enabled" />
+
+
+    <http name="approvalsSecurity" pattern="/approvals/**" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+          entry-point-ref="oauthAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager"  use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="scope=oauth.approvals" />
+        <custom-filter ref="approvalsResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <oauth:resource-server id="approvalsResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="oauth" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+
+    <http name="clientSecretSecurity" pattern="/oauth/clients/*/secret" create-session="stateless"
+          authentication-manager-ref="emptyAuthenticationManager" entry-point-ref="oauthAuthenticationEntryPoint"  use-expressions="true"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/oauth/clients/*/secret" access="#oauth2.hasAnyScope('clients.secret', 'clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" />
+        <custom-filter ref="oauthWithoutResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http name="clientTxAdminSecurity" pattern="/oauth/clients/tx/**" create-session="stateless" entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager" xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="DELETE" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="PUT" />
+        <custom-filter ref="oauthWithoutResourceAuthenticationFilter" before="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http name="clientAdminSecurity" pattern="/oauth/clients/**" create-session="stateless" entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true" authentication-manager-ref="emptyAuthenticationManager" xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/oauth/clients/**/meta" method="GET" access="isFullyAuthenticated()" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="DELETE" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="POST" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="PUT" />
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('clients.read','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')" method="GET" />
+        <intercept-url pattern="/**" access="denyAll"/>
+        <custom-filter ref="oauthWithoutResourceAuthenticationFilter" before="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <oauth:resource-server id="clientResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="clients" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+
+    <http name="checkTokenSecurity" pattern="/check_token" create-session="stateless" entry-point-ref="basicAuthenticationEntryPoint"
+          authentication-manager-ref="clientAuthenticationManager" use-expressions="true"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="hasAuthority('uaa.resource')" />
+        <anonymous enabled="false" />
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http name="tokenKeySecurity" pattern="/token_key**" create-session="stateless" entry-point-ref="basicAuthenticationEntryPoint"
+          authentication-manager-ref="clientAuthenticationManager" use-expressions="true"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="isAnonymous() or isFullyAuthenticated()" />
+        <anonymous enabled="true" />
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <http name="clientInfoSecurity" pattern="/clientinfo" create-session="stateless" entry-point-ref="basicAuthenticationEntryPoint"
+          authentication-manager-ref="clientAuthenticationManager" use-expressions="true"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="isFullyAuthenticated()" />
+        <anonymous enabled="false" />
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+    <http name="userInfoSecurity" pattern="/userinfo" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+          entry-point-ref="oauthAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager"  use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="scope=openid" />
+        <custom-filter ref="openidResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+    <oauth:resource-server id="openidResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="openid" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+
+    <http  name="codeStoreSecurity" pattern="/Codes/**" create-session="stateless" authentication-manager-ref="emptyAuthenticationManager"
+           entry-point-ref="oauthAuthenticationEntryPoint"
+           xmlns="http://www.springframework.org/schema/security" use-expressions="true">
+        <intercept-url pattern="/**" access="#oauth2.hasAnyScope('oauth.login')"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        <anonymous enabled="false" />
+        <expression-handler ref="oauthWebExpressionHandler" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>
+
+
+
+
+
+    <!-- Pattern: /oauth/authorize parameters:{response_type=code,code=?} -->
+    <http name="secFilterAutologinAuthorize" request-matcher-ref="autologinAuthorizeRequestMatcher"
+          entry-point-ref="loginEntryPoint"
+          xmlns="http://www.springframework.org/schema/security">
+        <!-- TODO: add entry point that can redirect back to client app? -->
+        <anonymous enabled="false"/>
+        <custom-filter ref="autologinAuthenticationFilter" position="FORM_LOGIN_FILTER"/>
+        <csrf disabled="false" token-repository-ref="loginCookieCsrfRepository"/>
+    </http>
+
+    <http name="secFilterCodeLogin" request-matcher-ref="autologinRequestMatcher" entry-point-ref="loginEntryPoint"
+          xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" method="GET"/>
+        <custom-filter ref="autologinAuthenticationFilter" position="FORM_LOGIN_FILTER"/>
+        <anonymous enabled="false"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <!-- Pattern:/autologin -->
+    <http name="secFilterAutologin" pattern="/autologin" create-session="stateless"
+          entry-point-ref="basicAuthenticationEntryPoint"
+          xmlns="http://www.springframework.org/schema/security" authentication-manager-ref="emptyAuthenticationManager"
+          use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" method="POST"/>
+        <anonymous enabled="false"/>
+        <custom-filter ref="clientAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <!--<bean id="backwardsCompatibleScopeParameter"
+          class="com.tianzhu.identity.uaa.web.BackwardsCompatibleScopeParsingFilter"/>-->
+
+    <http name="changeEmailSecurity"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          pattern="/change_email**"
+          xmlns="http://www.springframework.org/schema/security">
+        <access-denied-handler ref="loginEntryPoint"/>
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY"/>
+        <csrf disabled="false"/>
+    </http>
+
+    <bean id="acceptInvitationSecurityContextPersistenceFilter"
+          class="org.springframework.security.web.context.SecurityContextPersistenceFilter">
+        <constructor-arg name="repo">
+            <bean id="invitationsContextRepo"
+                  class="org.springframework.security.web.context.HttpSessionSecurityContextRepository">
+                <property name="trustResolver">
+                    <bean id="invitationsTrustResolver"
+                          class="com.tianzhu.identity.uaa.invitations.InvitationsAuthenticationTrustResolver"/>
+                </property>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <http name="invitationsSecurity"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="true"
+          pattern="/invitations/**"
+          xmlns="http://www.springframework.org/schema/security">
+        <access-denied-handler ref="loginEntryPoint"/>
+        <intercept-url pattern="/invitations/accept" access="isFullyAuthenticated() or isAnonymous()" method="GET"/>
+        <intercept-url pattern="/invitations/accept.do" access="hasAuthority('uaa.invited')" method="POST"/>
+        <intercept-url pattern="/invitations/accept_enterprise.do" access="hasAuthority('uaa.invited')" method="POST"/>
+        <intercept-url pattern="/**" access="denyAll"/>
+        <csrf disabled="false"/>
+        <custom-filter ref="acceptInvitationSecurityContextPersistenceFilter" before="FIRST"/>
+    </http>
+
+    <http name="invitationsEndpointSecurity"
+          entry-point-ref="oauthAuthenticationEntryPoint"
+          use-expressions="true"
+          pattern="/invite_users/**"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**"
+                       access="#oauth2.hasAnyScope('scim.invite') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')"
+                       method="POST"/>
+        <intercept-url pattern="**" access="denyAll"/>
+        <expression-handler ref="oauthWebExpressionHandler"/>
+        <access-denied-handler ref="oauthAccessDeniedHandler"/>
+        <custom-filter ref="resourceAgnosticAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+        <csrf disabled="true"/>
+    </http>
+
+    <bean id="resetPasswordAuthenticationFilter"
+          class="com.tianzhu.identity.uaa.account.ResetPasswordAuthenticationFilter">
+        <constructor-arg name="entryPoint" ref="resetPasswordEntryPoint"/>
+        <constructor-arg name="handler" ref="accountSavingAuthenticationSuccessHandler"/>
+        <constructor-arg name="service" ref="resetPasswordService"/>
+        <constructor-arg name="expiringCodeStore" ref="codeStore"/>
+    </bean>
+    <http name="resetPasswordSubmit"
+          pattern="/reset_password.do"
+          disable-url-rewriting="true"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <custom-filter ref="userManagementSecurityFilter" before="ANONYMOUS_FILTER"/>
+        <custom-filter ref="resetPasswordAuthenticationFilter" position="LAST"/>
+        <csrf disabled="false"/>
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+    <http name="resetPasswordSecurity"
+          pattern="/reset_password**"
+          disable-url-rewriting="true"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <csrf disabled="false"/>
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+    <http name="forgotPasswordSecurity"
+          pattern="/forgot_password**"
+          disable-url-rewriting="true"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <csrf disabled="true"/>
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+    <http name="changePasswordSecurity"
+          pattern="/change_password**"
+          disable-url-rewriting="true"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY"/>
+        <csrf disabled="false"/>
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+
+    <bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
+        <constructor-arg index="0" ref="logoutHandler"/>
+        <constructor-arg index="1">
+            <util:list>
+                <ref bean="uaaAuthenticationFailureHandler"/>
+                <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
+                <bean class="org.springframework.security.web.csrf.CsrfLogoutHandler">
+                    <constructor-arg ref="loginCookieCsrfRepository"/>
+                </bean>
+                <bean class="org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler">
+                    <constructor-arg index="0">
+                        <util:list>
+                            <value>JSESSIONID</value>
+                        </util:list>
+                    </constructor-arg>
+                </bean>
+            </util:list>
+        </constructor-arg>
+        <property name="logoutRequestMatcher" ref="uiLogoutRequestMatcher"/>
+    </bean>
+
+
+    <http name="forcePasswordChangeSecurity"
+          pattern="/force_password_change**"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <csrf disabled="false"
+              token-repository-ref="loginCookieCsrfRepository"
+        />
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+    <http name="totpSecurity"
+          pattern="/login/mfa/**"
+          entry-point-ref="loginEntryPoint"
+          use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <csrf disabled="false"
+              token-repository-ref="loginCookieCsrfRepository"
+        />
+        <access-denied-handler ref="loginEntryPoint"/>
+    </http>
+
+    <http name="uiSecurity"
+          request-matcher-ref="uiRequestMatcher"
+          use-expressions="false"
+          authentication-manager-ref="zoneAwareAuthzAuthenticationManager"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/login**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/login/idp_discovery" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY"/>
+        <form-login login-page="/login"
+                    username-parameter="username"
+                    password-parameter="password"
+                    login-processing-url="/login.do"
+                    authentication-success-handler-ref="accountSavingAuthenticationSuccessHandler"
+                    authentication-failure-handler-ref="uaaAuthenticationFailureHandler"
+                    authentication-details-source-ref="authenticationDetailsSource"
+                    default-target-url="/"/>
+        <!--<logout logout-url="/logout.do" success-handler-ref="logoutHandler" invalidate-session="true"/>-->
+        <custom-filter ref="clientRedirectStateCache" before="FORM_LOGIN_FILTER"/>
+        <custom-filter ref="logoutFilter" after="LOGOUT_FILTER"/>
+        <custom-filter ref="samlLogoutFilter" before="LOGOUT_FILTER"/>
+        <csrf disabled="false"
+              token-repository-ref="loginCookieCsrfRepository"
+              request-matcher-ref="uiCookeCsrfRequestMatcher"/>
+        <access-denied-handler error-page="/login?error=invalid_login_request"/>
+        <request-cache ref="clientRedirectStateCache"/>
+    </http>
+
+    <http name="deleteSavedAccountSecurity" pattern="/delete_saved_account**" create-session="stateless"
+          entry-point-ref="basicAuthenticationEntryPoint"
+          authentication-manager-ref="clientAuthenticationManager" use-expressions="false"
+          xmlns="http://www.springframework.org/schema/security">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+    </http>
+
+
+    <security:http name="verifyEmailSecurity" pattern="/verify_email" disable-url-rewriting="true"
+                   entry-point-ref="loginEntryPoint" use-expressions="false">
+        <security:intercept-url pattern="/verify_email" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:anonymous enabled="true"/>
+        <security:csrf disabled="true"/>
+    </security:http>
+
+    <security:http name="verifyUserSecurity" pattern="/verify_user" disable-url-rewriting="true"
+                   entry-point-ref="loginEntryPoint" use-expressions="false">
+        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:anonymous enabled="true"/>
+        <security:csrf disabled="true"/>
+    </security:http>
+
+    <security:http name="acceptInvitationSecurity" pattern="/invitations/accept" disable-url-rewriting="true"
+                   entry-point-ref="loginEntryPoint" use-expressions="false">
+        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:anonymous enabled="true"/>
+        <security:csrf disabled="true"/>
+    </security:http>
+
+    <security:http name="openIdSecurity" use-expressions="false">
+        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY"/>
+        <security:custom-filter before="FIRST" ref="metadataGeneratorFilter"/>
+        <security:custom-filter after="FIRST" ref="httpsHeaderFilter"/>
+        <security:custom-filter before="BASIC_AUTH_FILTER" ref="idpMetadataGeneratorFilter"/>
+        <security:custom-filter after="BASIC_AUTH_FILTER" ref="samlFilter"/>
+        <security:custom-filter after="FILTER_SECURITY_INTERCEPTOR" ref="samlIdpLoginFilter"/>
+        <security:custom-filter ref="oauth2ClientFilter" after="EXCEPTION_TRANSLATION_FILTER"/>
+        <security:logout logout-url="/logout" success-handler-ref="logoutHandler"/>
+        <security:openid-login login-page="/login" user-service-ref="openIdUserDetailsService"
+                               authentication-failure-url="/login?error=true">
+            <security:attribute-exchange identifier-match=".*myopenid.com.*">
+                <security:openid-attribute name="email" type="http://schema.openid.net/contact/email"
+                                           required="true"/>
+                <security:openid-attribute name="fullname" type="http://schema.openid.net/namePerson"
+                                           required="true"/>
+            </security:attribute-exchange>
+            <security:attribute-exchange identifier-match=".*">
+                <security:openid-attribute name="email" type="http://axschema.org/contact/email"
+                                           required="true" count="1"/>
+                <security:openid-attribute name="firstname" type="http://axschema.org/namePerson/first"
+                                           required="true"/>
+                <security:openid-attribute name="lastname" type="http://axschema.org/namePerson/last"
+                                           required="true"/>
+                <security:openid-attribute name="fullname" type="http://axschema.org/namePerson"
+                                           required="true"/>
+            </security:attribute-exchange>
+        </security:openid-login>
+        <security:anonymous enabled="false"/>
+        <security:csrf disabled="true"/>
+    </security:http>
+
+    <bean id="httpsHeaderFilter" class="com.tianzhu.identity.uaa.security.web.HttpsHeaderFilter"/>
+
+    <!-- this bean will be overwritten in the saml profile -->
+    <!--<bean id="metadataGeneratorFilter" class="com.tianzhu.identity.uaa.web.NoOpFilter"/>-->
+    <!-- this bean will be overwritten in the saml profile -->
+    <!--<bean id="samlFilter" class="com.tianzhu.identity.uaa.web.NoOpFilter"/>-->
+
+
+    <!--apply the oauth client context -->
+    <oauth:client id="oauth2ClientFilter"/>
+
+
+    <bean name="clientRedirectStateCache" class="com.tianzhu.identity.uaa.web.UaaSavedRequestCache">
+        <property name="requestMatcher" ref="uiAuthorizeRequestMatcher"/>
+    </bean>
+
+
+
+    <bean id="autologinAuthenticationFilter"
+          class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
+        <constructor-arg ref="autologinAuthenticationManager"/>
+        <property name="parameterNames">
+            <list>
+                <value>code</value>
+                <value>response_type</value>
+            </list>
+        </property>
+        <property name="methods">
+            <set>
+                <value>GET</value>
+                <value>POST</value>
+            </set>
+        </property>
+        <property name="successHandler" ref="accountSavingAuthenticationSuccessHandler"/>
+    </bean>
+
+
+    <bean id="samlIdpLoginFilter" class="org.springframework.security.web.FilterChainProxy">
+        <security:filter-chain-map
+                request-matcher="ant">
+            <security:filter-chain pattern="/saml/idp/SSO/**"
+                                   filters="samlSecurityContextPersistenceFilter,samlIdpWebSsoProcessingFilter" />
+        </security:filter-chain-map>
+    </bean>
+
+
+    <!-- SAML IdP processing filter for Web SSO profile messages. -->
+    <bean id="samlIdpWebSsoProcessingFilter"
+          class="org.springframework.security.saml.SAMLProcessingFilter">
+        <constructor-arg value="/saml/idp/SSO" />
+        <property name="authenticationManager" ref="samlIdpAuthenticationManager" />
+        <property name="authenticationSuccessHandler" ref="samlIdpSuccessHandler" />
+        <!-- <property name="authenticationFailureHandler" ref="samlLoginFailureHandler" /> -->
+        <property name="contextProvider" ref="idpContextProvider" />
+        <property name="SAMLProcessor" ref="idpSamlProcessor" />
+        <property name="sessionAuthenticationStrategy" ref="sessionFixationProtectionStrategy"/>
+    </bean>
+
+
+    <!-- Filter automatically generates default IdP metadata -->
+    <bean id="idpMetadataGeneratorFilter"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataGeneratorFilter">
+        <constructor-arg ref="zoneAwareIdpMetadataGenerator" />
+        <property name="displayFilter" ref="idpMetadataDisplayFilter" />
+        <property name="manager" ref="idpMetadataManager" />
+    </bean>
+
+    <bean id="idpMetadataDisplayFilter"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataDisplayFilter">
+        <property name="contextProvider" ref="idpContextProvider" />
+        <property name="manager" ref="idpMetadataManager" />
+        <property name="filterProcessesUrl" value="/saml/idp/metadata" />
+        <property name="keyManager" ref="idpZoneAwareSamlKeyManager"/>
+    </bean>
+
+
+    <bean id="samlSecurityContextPersistenceFilter" class="org.springframework.security.web.context.SecurityContextPersistenceFilter"/>
+
+    <bean id="samlFilter" class="org.springframework.security.web.FilterChainProxy">
+        <security:filter-chain-map request-matcher="ant">
+            <security:filter-chain pattern="/saml/login/**" filters="samlEntryPoint" />
+            <security:filter-chain pattern="/saml/logout/**" filters="samlLogoutFilter" />
+            <security:filter-chain pattern="/saml/metadata/**" filters="metadataDisplayFilter" />
+            <security:filter-chain pattern="/saml/idp/metadata/**" filters="idpMetadataDisplayFilter" />
+            <security:filter-chain pattern="/saml/SSO/**" filters="samlSecurityContextPersistenceFilter,samlWebSSOProcessingFilter" />
+            <security:filter-chain pattern="/saml/SingleLogout/**" filters="samlLogoutProcessingFilter" />
+            <security:filter-chain pattern="/saml/discovery/**" filters="samlIDPDiscovery" />
+            <!--<security:filter-chain pattern="/oauth/authorize/**" filters="exceptionTranslationFilter" />-->
+        </security:filter-chain-map>
+    </bean>
+
+
+    <bean id="exceptionTranslationFilter" class="org.springframework.security.web.access.ExceptionTranslationFilter">
+        <constructor-arg ref="samlEntryPoint" />
+    </bean>
+
+
+    <!-- Filter automatically generates default SP metadata -->
+    <bean id="metadataGeneratorFilter" class="org.springframework.security.saml.metadata.MetadataGeneratorFilter">
+        <constructor-arg ref="zoneAwareMetadataGenerator"/>
+        <property name="manager" ref="metadata" />
+        <property name="displayFilter" ref="metadataDisplayFilter" />
+    </bean>
+
+    <!-- The filter is waiting for connections on URL suffixed with filterSuffix
+        and presents SP metadata there -->
+
+    <bean id="metadataDisplayFilter" class="com.tianzhu.identity.uaa.provider.saml.ZoneAwareMetadataDisplayFilter">
+        <constructor-arg name="generator" ref="zoneAwareMetadataGenerator"/>
+        <property name="manager" ref="metadata" />
+        <property name="contextProvider" ref="basicContextProvider" />
+        <property name="keyManager" ref="zoneAwareSamlSpKeyManager"/>
+    </bean>
+
+
+    <!-- Processing filter for WebSSO profile messages -->
+    <bean id="samlWebSSOProcessingFilter" class="org.springframework.security.saml.SAMLProcessingFilter">
+        <property name="authenticationManager" ref="samlAuthenticationManager" />
+        <property name="authenticationSuccessHandler" ref="accountSavingAuthenticationSuccessHandler" />
+        <property name="authenticationFailureHandler" ref="samlLoginFailureHandler" />
+        <property name="contextProvider" ref="basicContextProvider" />
+        <property name="SAMLProcessor" ref="processor" />
+        <property name="sessionAuthenticationStrategy" ref="sessionFixationProtectionStrategy"/>
+    </bean>
+
+
+    <!-- Override default logout processing filter with the one processing SAML
+        messages -->
+    <bean id="samlLogoutFilter" class="com.tianzhu.identity.uaa.authentication.UaaSamlLogoutFilter">
+        <constructor-arg ref="logoutHandler" />
+        <constructor-arg ref="samlLogoutHandlers" />
+        <property name="contextProvider" ref="redirectSavingSamlContextProvider" />
+    </bean>
+
+    <!-- Filter processing incoming logout messages -->
+    <!-- First argument determines URL user will be redirected to after successful
+        global logout -->
+    <bean id="samlLogoutProcessingFilter" class="org.springframework.security.saml.SAMLLogoutProcessingFilter">
+        <constructor-arg ref="samlWhitelistLogoutHandler" />
+        <constructor-arg ref="samlLogoutHandlers" />
+        <property name="SAMLProcessor" ref="processor" />
+    </bean>
+<!--
+    <bean id="samlIdpWebSsoProcessingFilter"
+          class="org.springframework.security.saml.SAMLProcessingFilter">
+        <constructor-arg value="/saml/idp/SSO" />
+        <property name="authenticationManager" ref="samlIdpAuthenticationManager" />
+        <property name="authenticationSuccessHandler" ref="samlIdpSuccessHandler" />
+        &lt;!&ndash; <property name="authenticationFailureHandler" ref="samlLoginFailureHandler" /> &ndash;&gt;
+        <property name="contextProvider" ref="idpContextProvider" />
+        <property name="SAMLProcessor" ref="idpSamlProcessor" />
+        <property name="sessionAuthenticationStrategy" ref="sessionFixationProtectionStrategy"/>
+    </bean>-->
+
+    <!-- Entry point to initialize authentication, default values taken from
+            properties file -->
+    <bean id="samlEntryPoint" class="com.tianzhu.identity.uaa.provider.saml.LoginSamlEntryPoint">
+        <property name="defaultProfileOptions">
+            <bean class="org.springframework.security.saml.websso.WebSSOProfileOptions">
+                <property name="includeScoping" value="false" />
+                <property name="nameID" value="${login.saml.nameID:urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified}" />
+                <property name="assertionConsumerIndex" value="${login.saml.assertionConsumerIndex:0}" />
+                <property name="relayState" value="cloudfoundry-uaa-sp"/>
+            </bean>
+        </property>
+        <property name="providerDefinitionList" ref="metaDataProviders"/>
+        <property name="contextProvider" ref="basicContextProvider" />
+        <property name="metadata" ref="metadata" />
+    </bean>
+
+
+    <!-- IDP Discovery Service -->
+    <bean id="samlIDPDiscovery" class="com.tianzhu.identity.uaa.provider.saml.LoginSamlDiscovery">
+        <property name="contextProvider" ref="basicContextProvider" />
+        <property name="metadata" ref="metadata"/>
+    </bean>
+
+    <bean id="limitedModeUaaFilter" class="com.tianzhu.identity.uaa.web.LimitedModeUaaFilter">
+        <property name="statusFile" value="${uaa.limitedFunctionality.statusFile:#{null}}"/>
+        <property name="permittedEndpoints"
+                  value="#{@config['uaa']==null ? null :
+                           @config['uaa']['limitedFunctionality']==null ? null :
+                           @config['uaa']['limitedFunctionality']['whitelist']==null ? null :
+                           @config['uaa']['limitedFunctionality']['whitelist']['endpoints']}"/>
+        <property name="permittedMethods"
+                  value="#{@config['uaa']==null ? null :
+                           @config['uaa']['limitedFunctionality']==null ? null :
+                           @config['uaa']['limitedFunctionality']['whitelist']==null ? null :
+                           @config['uaa']['limitedFunctionality']['whitelist']['methods']}"/>
+    </bean>
+
+    <bean id="zoneAwareIdpMetadataGenerator"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.ZoneAwareIdpMetadataGenerator">
+        <property name="extendedMetadata" ref="idpExtendedMetaData" />
+        <property name="wantAuthnRequestSigned"
+                  value="${login.saml.wantAuthnRequestSigned:false}" />
+        <property name="entityBaseURL"
+                  value="${login.entityBaseURL:http://localhost:8080/uaa}" />
+        <property name="entityId" ref="samlIdpEntityID" />
+        <property name="samlWebSSOFilter" ref="samlIdpWebSsoProcessingFilter" />
+        <property name="keyManager" ref="idpZoneAwareSamlKeyManager"/>
+    </bean>
+
+    <bean id="idpMetadataManager"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.NonSnarlIdpMetadataManager"
+          depends-on="spMetaDataProviders" destroy-method="destroy">
+        <constructor-arg name="configurator" ref="spMetaDataProviders" />
+        <property name="refreshCheckInterval" value="${login.saml.metadataRefreshInterval:0}" />
+        <property name="generator" ref="zoneAwareIdpMetadataGenerator"/>
+        <property name="keyManager" ref="idpZoneAwareSamlKeyManager"/>
+
+    </bean>
+
+
+    <bean id="samlIdpSuccessHandler"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpSamlAuthenticationSuccessHandler">
+        <property name="idpWebSsoProfile" ref="idpWebSsoProfileImpl" />
+        <property name="metadataManager" ref="idpMetadataManager" />
+    </bean>
+
+
+
+    <bean id="idpInitiatedLogin"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpInitiatedLoginController">
+        <property name="idpWebSsoProfile" ref="idpWebSsoProfileImpl"/>
+        <property name="metadataManager" ref="idpMetadataManager"/>
+        <property name="configurator" ref="spMetaDataProviders"/>
+        <property name="contextProvider" ref="idpContextProvider"/>
+        <property name="idpSamlAuthenticationSuccessHandler" ref="samlIdpSuccessHandler"/>
+    </bean>
+
+    <bean id="idpWebSsoProfileImpl"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpWebSsoProfileImpl">
+        <property name="metadata" ref="idpMetadataManager" />
+        <property name="processor" ref="idpSamlProcessor" />
+        <property name="samlServiceProviderProvisioning" ref="serviceProviderProvisioning" />
+        <property name="scimUserProvisioning" ref="scimUserProvisioning" />
+    </bean>
+
+
+    <bean id="idpNonCachingMetadataCredentialsResolver" class="com.tianzhu.identity.uaa.provider.saml.NonCachingMetadataCredentialResolver">
+        <constructor-arg name="metadataProvider" ref="idpMetadataManager"/>
+        <constructor-arg name="keyManager" ref="idpZoneAwareSamlKeyManager"/>
+    </bean>
+
+    <bean id="idpContextProvider"
+          class="com.tianzhu.identity.uaa.provider.saml.idp.IdpSamlContextProviderImpl">
+        <property name="metadata" ref="idpMetadataManager" />
+        <property name="metadataResolver" ref="idpNonCachingMetadataCredentialsResolver"/>
+        <property name="keyManager" ref="idpZoneAwareSamlKeyManager"/>
+    </bean>
+
+
+
+
+
+
+    <bean class="com.tianzhu.identity.uaa.authentication.RemoteAuthenticationEndpoint">
+        <constructor-arg ref="zoneAwareAuthzAuthenticationManager" />
+        <property name="loginAuthenticationManager" ref="loginAuthenticationMgr"/>
+    </bean>
+
+
+    <bean id="passwordResetEndpoints" class="com.tianzhu.identity.uaa.account.PasswordResetEndpoint">
+        <constructor-arg ref="resetPasswordService"/>
+        <property name="messageConverters">
+            <list>
+                <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+            </list>
+        </property>
+        <property name="codeStore" ref="codeStore"/>
+    </bean>
+
+    <bean id="changeEmailEndpoints" class="com.tianzhu.identity.uaa.scim.endpoints.ChangeEmailEndpoints">
+        <constructor-arg ref="scimUserProvisioning"/>
+        <constructor-arg ref="codeStore"/>
+        <constructor-arg ref="clientDetailsService"/>
+    </bean>
+
+    <bean id="tokenRevocationEndpoint" class="com.tianzhu.identity.uaa.oauth.TokenRevocationEndpoint">
+        <constructor-arg name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <constructor-arg name="userProvisioning" ref="scimUserProvisioning"/>
+        <constructor-arg name="tokenProvisioning" ref="revocableTokenProvisioning" />
+    </bean>
+
+    <bean id="uaaTokenEndpoint" class="com.tianzhu.identity.uaa.oauth.token.UaaTokenEndpoint">
+        <property name="OAuth2RequestValidator" ref="oauth2RequestValidator"/>
+        <property name="tokenGranter" ref="oauth2TokenGranter"/> <!--this bean created by <oauth:authorization-server/> -->
+        <property name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <property name="OAuth2RequestFactory" ref="authorizationRequestManager"/>
+        <property name="allowQueryString" ref="allowQueryStringForTokens"/>
+    </bean>
+
+    <bean id="uaaAuthorizationEndpoint" class="com.tianzhu.identity.uaa.oauth.UaaAuthorizationEndpoint">
+        <property name="authorizationCodeServices" ref="authorizationCodeServices"/>
+        <property name="OAuth2RequestValidator" ref="oauth2RequestValidator"/>
+        <property name="userApprovalHandler" ref="userManagedApprovalHandler"/>
+        <property name="tokenGranter" ref="oauth2TokenGranter"/> <!--this bean created by <oauth:authorization-server/> -->
+        <property name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <property name="OAuth2RequestFactory" ref="authorizationRequestManager"/>
+        <property name="hybridTokenGranterForAuthCode" ref="hybridTokenGranterForAuthCodeGrant"/>
+        <property name="redirectResolver">
+            <bean class="com.tianzhu.identity.uaa.oauth.AntPathRedirectResolver"/>
+        </property>
+    </bean>
+
+    <bean id="tokenKeyEndpoint" class="com.tianzhu.identity.uaa.oauth.TokenKeyEndpoint" />
+
+    <bean id="accessController" class="com.tianzhu.identity.uaa.oauth.AccessController">
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+        <!-- Always use HTTPS if deployed on cloudfoundry -->
+        <property name="useSsl"
+                  value="#{@applicationProperties['oauth.authorize.ssl']?:(T(java.lang.System).getenv('VCAP_APPLICATION')!=null ? true : null)}" />
+        <property name="approvalStore" ref="approvalStore" />
+        <property name="groupProvisioning" ref="scimGroupProvisioning" />
+    </bean>
+
+
+    <bean id="scimUserEndpoints" class="com.tianzhu.identity.uaa.scim.endpoints.ScimUserEndpoints">
+        <property name="scimUserProvisioning" ref="scimUserProvisioning" />
+        <property name="identityProviderProvisioning" ref="identityProviderProvisioning"/>
+        <property name="scimUserResourceMonitor" ref="scimUserProvisioning"/>
+        <property name="scimGroupMembershipManager" ref="groupMembershipManager" />
+        <property name="approvalStore" ref="approvalStore" />
+        <property name="statuses" ref="exceptionToStatusMap" />
+        <property name="messageConverters">
+            <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+        </property>
+        <property name="passwordValidator" ref="uaaPasswordValidator"/>
+        <property name="codeStore" ref="codeStore"/>
+    </bean>
+
+    <bean id="scimGroupEndpoints" class="com.tianzhu.identity.uaa.scim.endpoints.ScimGroupEndpoints">
+        <constructor-arg name="scimGroupProvisioning" ref="scimGroupProvisioning" />
+        <constructor-arg name="membershipManager" ref="groupMembershipManager" />
+        <property name="statuses" ref="exceptionToStatusMap" />
+        <property name="messageConverters">
+            <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+        </property>
+        <property name="externalMembershipManager" ref="externalGroupMembershipManager" />
+    </bean>
+
+
+    <bean id="idConversionEndpoints" class="com.tianzhu.identity.uaa.scim.endpoints.UserIdConversionEndpoints">
+        <constructor-arg name="provisioning" ref="identityProviderProvisioning"/>
+        <property name="scimUserEndpoints" ref="scimUserEndpoints" />
+        <property name="enabled" ref="userIdsEnabled" />
+    </bean>
+
+    <bean id="passwordChangeEndpoint" class="com.tianzhu.identity.uaa.account.PasswordChangeEndpoint">
+        <property name="scimUserProvisioning" ref="scimUserProvisioning" />
+        <property name="passwordValidator" ref="uaaPasswordValidator" />
+        <property name="messageConverters">
+            <list>
+                <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="mfaProviderEndpoints" class="com.tianzhu.identity.uaa.mfa.MfaProviderEndpoints">
+        <property name="mfaProviderProvisioning" ref="mfaProviderProvisioning"/>
+        <property name="mfaProviderValidator" ref="mfaProviderValidator"/>
+        <property name="identityZoneProvisioning" ref="identityZoneProvisioning"/>
+    </bean>
+
+    <bean id="identityZoneEndpoints" class="com.tianzhu.identity.uaa.zone.IdentityZoneEndpoints">
+        <constructor-arg ref="identityZoneProvisioning"/>
+        <constructor-arg ref="identityProviderProvisioning"/>
+        <constructor-arg ref="zoneEndpointsClientRegistrationService"/>
+        <constructor-arg ref="scimGroupProvisioning"/>
+        <property name="validator" ref="identityZoneValidator"/>
+    </bean>
+
+    <bean id="identityProviderEndpoints" class="com.tianzhu.identity.uaa.provider.IdentityProviderEndpoints">
+        <constructor-arg ref="identityProviderProvisioning"/>
+        <constructor-arg name="scimGroupExternalMembershipManager" ref="externalGroupMembershipManager"/>
+        <constructor-arg name="scimGroupProvisioning" ref="scimGroupProvisioning"/>
+        <constructor-arg name="configValidator" ref="identityProviderConfigValidator"/>
+        <constructor-arg ref="metaDataProviders"/>
+    </bean>
+
+    <bean id="serviceProviderEndpoints"
+          class="com.tianzhu.identity.uaa.provider.SamlServiceProviderEndpoints">
+        <constructor-arg ref="serviceProviderProvisioning"/>
+        <constructor-arg ref="spMetaDataProviders"/>
+    </bean>
+
+    <bean id="approvalsEndpoints" class="com.tianzhu.identity.uaa.approval.ApprovalsAdminEndpoints">
+        <property name="uaaUserDatabase" ref="userDatabase" />
+        <property name="approvalStore" ref="approvalStore" />
+        <property name="statuses">
+            <util:map id="exceptionToStatusMap" key-type="java.lang.Class" value-type="org.springframework.http.HttpStatus">
+                <entry key="org.springframework.dao.DataIntegrityViolationException" value="BAD_REQUEST" />
+                <entry key="org.springframework.http.converter.HttpMessageConversionException" value="BAD_REQUEST" />
+                <entry key="org.springframework.web.HttpMediaTypeException" value="BAD_REQUEST" />
+                <entry key="java.lang.IllegalArgumentException" value="BAD_REQUEST" />
+                <entry key="java.lang.UnsupportedOperationException" value="BAD_REQUEST" />
+                <entry key="org.springframework.jdbc.BadSqlGrammarException" value="BAD_REQUEST" />
+            </util:map>
+        </property>
+        <property name="messageConverters">
+            <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+        </property>
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+    </bean>
+
+    <bean id="clientAdminEndpoints" class="com.tianzhu.identity.uaa.client.ClientAdminEndpoints">
+        <property name="clientRegistrationService" ref="jdbcClientDetailsService" />
+        <property name="clientDetailsService" ref="clientDetailsService" />
+        <property name="clientDetailsResourceMonitor" ref="jdbcClientDetailsService"/>
+        <property name="approvalStore" ref="approvalStore"/>
+        <property name="authenticationManager" ref="clientAuthenticationManager"/>
+        <property name="attributeNameMapper">
+            <bean class="com.tianzhu.identity.uaa.resources.SimpleAttributeNameMapper">
+                <constructor-arg name="paramsMap">
+                    <map key-type="java.lang.String" value-type="java.lang.String">
+                        <entry key="client_id" value="clientId" />
+                        <entry key="resource_ids" value="resourceIds" />
+                        <entry key="authorized_grant_types" value="authorizedGrantTypes" />
+                        <entry key="redirect_uri" value="registeredRedirectUri" />
+                        <entry key="access_token_validity" value="accessTokenValiditySeconds" />
+                        <entry key="refresh_token_validity" value="refreshTokenValiditySeconds" />
+                        <entry key="autoapprove" value="autoApproveScopes" />
+                        <entry key="additionalinformation" value="additionalInformation"/>
+                    </map>
+                </constructor-arg>
+            </bean>
+        </property>
+        <property name="clientDetailsValidator" ref="clientDetailsValidator"/>
+        <property name="restrictedScopesValidator">
+            <bean class="com.tianzhu.identity.uaa.client.RestrictUaaScopesClientValidator"
+                  id="restrictUaaScopesClientValidator">
+                <constructor-arg>
+                    <bean class="com.tianzhu.identity.uaa.client.UaaScopes" id="uaaScopes"/>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="clientMetadataAdminEndpoints" class="com.tianzhu.identity.uaa.client.ClientMetadataAdminEndpoints">
+        <property name="clientMetadataProvisioning" ref="jdbcClientMetadataProvisioning" />
+        <property name="messageConverters">
+            <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+        </property>
+    </bean>
+
+    <bean id="checkTokenEndpoint" class="com.tianzhu.identity.uaa.oauth.CheckTokenEndpoint">
+        <property name="tokenServices" ref="tokenServices" />
+        <property name="allowQueryString" ref="allowQueryStringForTokens"/>
+    </bean>
+
+    <bean id="clientInfoEndpoint" class="com.tianzhu.identity.uaa.client.ClientInfoEndpoint">
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+    </bean>
+
+    <bean id="userInfoEndpoint" class="com.tianzhu.identity.uaa.account.UserInfoEndpoint">
+        <property name="userDatabase" ref="userDatabase" />
+    </bean>
+
+    <bean id="openIdConnectEndpoints" class="com.tianzhu.identity.uaa.account.OpenIdConnectEndpoints">
+        <property name="issuer" value="${issuer.uri:http://localhost:8080/uaa}" />
+    </bean>
+
+    <bean id="passwordCheck" class="com.tianzhu.identity.uaa.account.PasswordCheckEndpoint">
+    </bean>
+
+    <bean id="codeStoreEndpoints" class="com.tianzhu.identity.uaa.codestore.CodeStoreEndpoints">
+        <property name="expiringCodeStore" ref="codeStore" />
+        <property name="messageConverters">
+            <bean class="com.tianzhu.identity.uaa.web.ExceptionReportHttpMessageConverter" />
+        </property>
+    </bean>
+
+
+    <bean name="forcePasswordChangeController" class="com.tianzhu.identity.uaa.login.ForcePasswordChangeController">
+        <property name="resourcePropertySource" ref="messagePropertiesSource"/>
+    </bean>
+
+    <mvc:default-servlet-handler/>
+
+    <bean id="homeController" class="com.tianzhu.identity.uaa.home.HomeController">
+        <constructor-arg ref="environment"/>
+        <property name="uaaBaseUrl" ref="uaaUrl"/>
+        <property name="globalLinks" ref="globalLinks"/>
+    </bean>
+
+    <bean id="sessionController" class="com.tianzhu.identity.uaa.login.SessionController"/>
+
+
+
+    <bean id="approvalsController" class="com.tianzhu.identity.uaa.account.ProfileController">
+        <constructor-arg index="0" ref="approvalStore"/>
+        <constructor-arg index="1" ref="jdbcClientDetailsService"/>
+    </bean>
+
+    <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
+        <mvc:message-converters>
+            <bean class="com.tianzhu.identity.uaa.authentication.manager.AutologinRequestConverter"/>
+        </mvc:message-converters>
+        <mvc:path-matching registered-suffixes-only="true"/>
+    </mvc:annotation-driven>
+
+    <bean name="invitationsController" class="com.tianzhu.identity.uaa.invitations.InvitationsController">
+        <constructor-arg name="invitationsService" ref="invitationsService"/>
+        <property name="spEntityID" ref="samlEntityID"/>
+        <property name="expiringCodeStore" ref="codeStore"/>
+        <property name="userDatabase" ref="userDatabase"/>
+        <property name="passwordValidator" ref="uaaPasswordValidator"/>
+        <property name="providerProvisioning" ref="identityProviderProvisioning"/>
+        <property name="zoneAwareAuthenticationManager" ref="zoneAwareAuthzAuthenticationManager"/>
+        <property name="userProvisioning" ref="scimUserProvisioning"/>
+    </bean>
+
+    <bean name="invitationsEndpoint" class="com.tianzhu.identity.uaa.invitations.InvitationsEndpoint">
+        <constructor-arg name="users" ref="scimUserProvisioning"/>
+        <constructor-arg name="providers" ref="identityProviderProvisioning"/>
+        <constructor-arg name="clients" ref="jdbcClientDetailsService"/>
+        <constructor-arg name="expiringCodeStore" ref="codeStore"/>
+    </bean>
+
+    <mvc:resources mapping="/resources/**" location="classpath:/resources/"/>
+    <mvc:resources mapping="/vendor/**" location="classpath:/vendor/"/>
+    <mvc:default-servlet-handler/>
+
+    <!--<bean id="thymeleafConfig" class="com.tianzhu.identity.uaa.login.ThymeleafConfig"/>-->
+
+    <bean id="changePasswordController" class="com.tianzhu.identity.uaa.account.ChangePasswordController">
+        <constructor-arg ref="changePasswordService"/>
+    </bean>
+
+    <bean id="resetPasswordController" class="com.tianzhu.identity.uaa.account.ResetPasswordController">
+        <constructor-arg ref="resetPasswordService"/>
+        <constructor-arg ref="messageService"/>
+        <constructor-arg ref="mailTemplateEngine"/>
+        <constructor-arg ref="codeStore"/>
+        <constructor-arg ref="userDatabase"/>
+    </bean>
+
+    <bean id="changeEmailController" class="com.tianzhu.identity.uaa.account.ChangeEmailController">
+        <constructor-arg ref="changeEmailService"/>
+        <property name="uaaUserDatabase" ref="userDatabase"/>
+    </bean>
+
+    <bean id="totpEndpoint" class="com.tianzhu.identity.uaa.login.TotpEndpoint">
+        <property name="userGoogleMfaCredentialsProvisioning" ref="userGoogleMfaCredentialsProvisioning"/>
+        <property name="mfaProviderProvisioning" ref="mfaProviderProvisioning" />
+        <property name="googleAuthenticatorService" ref="googleAuthenticatorAdapter" />
+        <property name="redirectingHandler" ref="successRedirectHandler"/>
+    </bean>
+    <!--Basic application beans. -->
+    <bean id="loginInfoEndpoint" class="com.tianzhu.identity.uaa.login.LoginInfoEndpoint">
+        <property name="authenticationManager" ref="zoneAwareAuthzAuthenticationManager"/>
+        <property name="uaaBaseUrl" ref="uaaUrl" />
+        <property name="entityID" ref="samlEntityID"/>
+        <property name="idpDefinitions" ref="metaDataProviders"/>
+        <property name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <property name="expiringCodeStore" ref="codeStore"/>
+        <property name="externalLoginUrl" value="${login.url:''}"/>
+        <property name="providerProvisioning" ref="identityProviderProvisioning"/>
+        <property name="xoAuthProviderConfigurator" ref="xoauthProviderConfigurator"/>
+        <property name="globalLinks" ref="globalLinks"/>
+    </bean>
+
+    <bean id="healthzEndpoint" class="com.tianzhu.identity.uaa.health.HealthzEndpoint">
+        <constructor-arg name="sleepTime" value="${uaa.shutdown.sleep:-1}"/>
+    </bean>
+    <context:annotation-config />
+</beans>

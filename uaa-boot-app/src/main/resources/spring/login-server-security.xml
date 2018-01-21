@@ -40,9 +40,6 @@
         </property>
     </bean>
 
-    <bean id="oauthLoginScopeAuthenticatingFilter" class="com.tianzhu.identity.uaa.authentication.manager.ScopeAuthenticationFilter">
-        <property name="authenticationManager" ref="oauthLoginAuthManager"/>
-    </bean>
 
     <bean id="oauthLoginAuthManager" class="com.tianzhu.identity.uaa.authentication.manager.ScopeAuthenticationManager">
         <property name="requiredScopes">
@@ -70,17 +67,6 @@
     </bean>
 
 
-    <bean id="loginServerTokenEndpointAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.LoginServerTokenEndpointFilter">
-        <constructor-arg ref="loginAuthenticationMgr" />
-        <constructor-arg ref="authorizationRequestManager"/>
-        <constructor-arg ref="addNewUserParameters"/>
-        <property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
-    </bean>
-
-    <bean id="loginClientParameterAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.LoginClientParametersAuthenticationFilter">
-        <property name="clientAuthenticationManager" ref="clientAuthenticationManager"/>
-    </bean>
-
     <bean id="loginAuthorizeRequestMatcherOld" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
         <constructor-arg value="/oauth/authorize" />
         <property name="accept" value="application/json" />
@@ -102,11 +88,6 @@
         <value>authorities</value>
     </util:list>
 
-
-    <bean id="loginAuthenticationFilter" class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
-        <constructor-arg ref="loginAuthenticationMgr" />
-        <property name="parameterNames" ref="addNewUserParameters"/>
-    </bean>
 
 
     <bean id="loginAuthenticationMgr" class="com.tianzhu.identity.uaa.authentication.manager.LoginAuthenticationManager">

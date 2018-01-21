@@ -45,7 +45,7 @@ public class UaaFilterConfig {
         registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER);
         return registration;
     }*/
-
+/*
     @Bean
     public FilterRegistrationBean backwardsCompatibleScopeParameterRegistration() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
@@ -54,7 +54,7 @@ public class UaaFilterConfig {
         registration.addUrlPatterns("/*");
         //registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER+1);
         return registration;
-    }
+    }*/
 
     /*
     @Bean
@@ -74,8 +74,10 @@ public class UaaFilterConfig {
         return new BackwardsCompatibleScopeParsingFilter();
 
     }*/
+/*
 
     @Autowired
     private BackwardsCompatibleScopeParsingFilter backwardsCompatibleScopeParameterFilter;
+*/
 
 }

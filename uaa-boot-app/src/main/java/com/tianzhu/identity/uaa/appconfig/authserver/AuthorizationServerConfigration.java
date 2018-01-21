@@ -1,4 +1,4 @@
-package com.tianzhu.identity.uaa.appconfig;
+package com.tianzhu.identity.uaa.appconfig.authserver;
 
 import com.tianzhu.identity.uaa.authentication.manager.CompositeAuthenticationManager;
 import com.tianzhu.identity.uaa.oauth.*;
@@ -50,17 +50,6 @@ public class AuthorizationServerConfigration extends AuthorizationServerConfigur
     @Qualifier("compositeAuthenticationManager")
     CompositeAuthenticationManager compositeAuthenticationManager;
 
-
-    /*@Autowired
-    private AuthorizationEndpoint authorizationEndpoint;
-
-    @PostConstruct
-    public void init() {
-        authorizationEndpoint.setUserApprovalPage("forward:/oauth/uaa_confirm_access");
-        authorizationEndpoint.setErrorPage("forward:/oauth/uaa_error");
-    }*/
-
-
     @Bean
     public CompositeTokenGranter oauth2TokenGranter(){
         return new CompositeTokenGranter(new ArrayList<>());
@@ -87,6 +76,7 @@ public class AuthorizationServerConfigration extends AuthorizationServerConfigur
         endpoints.requestValidator(oauth2RequestValidator);
         endpoints.authorizationCodeServices(authorizationCodeServices);
         endpoints.authenticationManager(compositeAuthenticationManager);
+        endpoints.setClientDetailsService(jdbcClientDetailsService);
         //endpoints.pathMapping("/oauth/confirm_access","/oauth/uaa_confirm_access");
         //endpoints.pathMapping("/oauth/error","/oauth/uaa_error");
 

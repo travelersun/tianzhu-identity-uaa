@@ -21,13 +21,18 @@ public class UaaListenerConfig {
         //servletListenerRegistrationBean.setOrder(10);
         return servletListenerRegistrationBean;
     }*/
-
+/*
     @Bean
     public ServletListenerRegistrationBean httpSessionEventPublisherListenerRegistrationBean(){
         ServletListenerRegistrationBean servletListenerRegistrationBean = new ServletListenerRegistrationBean();
         servletListenerRegistrationBean.setListener(new HttpSessionEventPublisher());
         //servletListenerRegistrationBean.setOrder(10);
         return servletListenerRegistrationBean;
+    }*/
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean

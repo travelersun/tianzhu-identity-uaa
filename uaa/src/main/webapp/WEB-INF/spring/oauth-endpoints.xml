@@ -392,7 +392,7 @@
         <constructor-arg name="successHandler" ref="accountSavingAuthenticationSuccessHandler"/>
     </bean>
 
-    <bean id="xOauthCallbackRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+    <bean id="xOauthCallbackReqStatelessAuthzEndpointSecurityuestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
         <constructor-arg value="/login/callback" />
     </bean>
 

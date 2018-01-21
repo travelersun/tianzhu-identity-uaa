@@ -60,9 +60,9 @@ public class UaaSessionCookieConfig implements SessionCookieConfig, ServletConte
                 config.setPath(getPath());
             }
             logger.debug(String.format("Configuring session cookie - HttpOnly: %s", isHttpOnly()));
-            config.setHttpOnly(isHttpOnly());
+           // config.setHttpOnly(isHttpOnly());
             logger.debug(String.format("Configuring session cookie - Secure: %s", isSecure()));
-            config.setSecure(isSecure());
+            //config.setSecure(isSecure());
             if (hasText(getName())) {
                 logger.debug(String.format("Configuring session cookie - Name: %s", getName()));
                 config.setName(getName());

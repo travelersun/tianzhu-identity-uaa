@@ -31,9 +31,6 @@
 
     <authentication-manager xmlns="http://www.springframework.org/schema/security"/>
 
-    <oauth:resource id="uaa" access-token-uri="${uaa.token.url:http://localhost:8080/uaa/oauth/token}"
-                    client-id="login" client-secret="${LOGIN_SECRET:loginsecret}" type="client_credentials"/>
-
     <bean id="notificationsTemplate" class="com.tianzhu.identity.uaa.message.LocalUaaRestTemplate">
         <constructor-arg ref="uaa"/>
         <property name="clientId" value="login"/>
@@ -46,30 +43,9 @@
         <constructor-arg value="${notifications.url:}"/>
     </bean>
 
-
-    <bean id="acceptInvitationSecurityContextPersistenceFilter"
-          class="org.springframework.security.web.context.SecurityContextPersistenceFilter">
-        <constructor-arg name="repo">
-            <bean id="invitationsContextRepo"
-                  class="org.springframework.security.web.context.HttpSessionSecurityContextRepository">
-                <property name="trustResolver">
-                    <bean id="invitationsTrustResolver"
-                          class="com.tianzhu.identity.uaa.invitations.InvitationsAuthenticationTrustResolver"/>
-                </property>
-            </bean>
-        </constructor-arg>
-    </bean>
-
     <bean id="resetPasswordEntryPoint"
           class="com.tianzhu.identity.uaa.account.ResetPasswordAuthenticationEntryPoint"/>
 
-    <bean id="resetPasswordAuthenticationFilter"
-          class="com.tianzhu.identity.uaa.account.ResetPasswordAuthenticationFilter">
-        <constructor-arg name="entryPoint" ref="resetPasswordEntryPoint"/>
-        <constructor-arg name="handler" ref="accountSavingAuthenticationSuccessHandler"/>
-        <constructor-arg name="service" ref="resetPasswordService"/>
-        <constructor-arg name="expiringCodeStore" ref="codeStore"/>
-    </bean>
 
     <bean id="uiCookeCsrfRequestMatcher" class="org.springframework.security.web.util.matcher.OrRequestMatcher">
         <constructor-arg>
@@ -142,28 +118,6 @@
     </bean>
 
 
-    <bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
-        <constructor-arg index="0" ref="logoutHandler"/>
-        <constructor-arg index="1">
-            <util:list>
-                <ref bean="uaaAuthenticationFailureHandler"/>
-                <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
-                <bean class="org.springframework.security.web.csrf.CsrfLogoutHandler">
-                    <constructor-arg ref="loginCookieCsrfRepository"/>
-                </bean>
-                <bean class="org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler">
-                    <constructor-arg index="0">
-                        <util:list>
-                            <value>JSESSIONID</value>
-                        </util:list>
-                    </constructor-arg>
-                </bean>
-            </util:list>
-        </constructor-arg>
-        <property name="logoutRequestMatcher" ref="uiLogoutRequestMatcher"/>
-    </bean>
-
-
     <bean name="clientRedirectStateCache" class="com.tianzhu.identity.uaa.web.UaaSavedRequestCache">
         <property name="requestMatcher" ref="uiAuthorizeRequestMatcher"/>
     </bean>
@@ -190,14 +144,6 @@
     </bean>
 
 
-    <bean id="httpsHeaderFilter" class="com.tianzhu.identity.uaa.security.web.HttpsHeaderFilter"/>
-
-    <!-- this bean will be overwritten in the saml profile -->
-    <bean id="metadataGeneratorFilter" class="com.tianzhu.identity.uaa.web.NoOpFilter"/>
-    <!-- this bean will be overwritten in the saml profile -->
-    <bean id="samlFilter" class="com.tianzhu.identity.uaa.web.NoOpFilter"/>
-
-
     <bean id="loginEntryPoint" class="com.tianzhu.identity.uaa.security.CsrfAwareEntryPointAndDeniedHandler">
         <constructor-arg name="redirectCsrf" value="/invalid_request"/>
         <constructor-arg name="redirectNotLoggedIn" value="/login"/>
@@ -211,11 +157,6 @@
     <bean id="links" class="java.util.HashMap">
         <constructor-arg value="#{@config['links']==null ? T(java.util.Collections).EMPTY_MAP : @config['links']}"/>
     </bean>
-
-
-    <!--apply the oauth client context -->
-    <oauth:client id="oauth2ClientFilter"/>
-
 
 
     <util:map id="notifications" key-type="com.tianzhu.identity.uaa.message.MessageType">
@@ -249,25 +190,6 @@
         </entry>
     </util:map>
 
-
-
-    <bean id="autologinAuthenticationFilter"
-          class="com.tianzhu.identity.uaa.authentication.AuthzAuthenticationFilter">
-        <constructor-arg ref="autologinAuthenticationManager"/>
-        <property name="parameterNames">
-            <list>
-                <value>code</value>
-                <value>response_type</value>
-            </list>
-        </property>
-        <property name="methods">
-            <set>
-                <value>GET</value>
-                <value>POST</value>
-            </set>
-        </property>
-        <property name="successHandler" ref="accountSavingAuthenticationSuccessHandler"/>
-    </bean>
 
 
     <!-- Pattern: /oauth/authorize parameters:{response_type=code,code=?} -->

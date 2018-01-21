@@ -1,8 +1,12 @@
-package com.tianzhu.identity.uaa.appconfig;
+package com.tianzhu.identity.uaa.appconfig.websecurity;
 
 
+import com.tianzhu.identity.uaa.authentication.ClientDetailsAuthenticationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.annotation.Order;
@@ -17,21 +21,41 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
-//@ImportResource({"classpath:spring/resource-server.xml","classpath:spring/http-security.xml"})
 public class WebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
-
     @Override
-    protected AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/resources/**","/vendor/**","/square-logo.png","/favicon.ico");
     }
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests().antMatchers("/info",
+                "/password/**",
+                "/healthz/**",
+                "/saml/web/**",
+                "/error",
+                "/email_sent",
+                "/create_account*",
+                "/accounts/email_sent",
+                "/invalid_request",
+                "/saml_error",
+                "/oauth_error",
+                "/session",
+                "/oauth/token/.well-known/openid-configuration",
+                "/.well-known/openid-configuration",
+                "/authenticate/**").permitAll();
+    }
 
-
-
+    @Override
+    @Bean(name={"emptyAuthenticationManager"})
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
 }

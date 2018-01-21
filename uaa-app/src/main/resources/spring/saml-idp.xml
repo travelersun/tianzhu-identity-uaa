@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Cloud Foundry Copyright (c) [2009-2014] Pivotal Software, Inc. All Rights
+    Reserved. This product is licensed to you under the Apache License, Version
+    2.0 (the "License"). You may not use this product except in compliance with
+    the License. This product includes a number of subcomponents with separate
+    copyright notices and license terms. Your use of these subcomponents is subject
+    to the terms and conditions of the subcomponent's license, as noted in the
+    LICENSE file. -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+              http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+
+    <security:authentication-manager id="samlIdpAuthenticationManager">
+        <security:authentication-provider
+            ref="samlIdpAuthenticationProvider" />
+    </security:authentication-manager>
+
+
+
+    <bean id="samlIdpAuthenticationProvider"
+        class="com.tianzhu.identity.uaa.provider.saml.idp.IdpSamlAuthenticationProvider" />
+
+
+
+    <!-- Class loading incoming SAML messages from httpRequest stream -->
+    <bean id="idpSamlProcessor" class="org.springframework.security.saml.processor.SAMLProcessorImpl">
+        <constructor-arg>
+            <list>
+                <ref bean="redirectBinding" />
+                <ref bean="postBinding" />
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="idpZoneAwareSamlKeyManager" class="com.tianzhu.identity.uaa.provider.saml.ZoneAwareKeyManager" depends-on="identityZoneHolderInitializer"/>
+
+
+
+
+    <bean id="idpExtendedMetaData"
+        class="com.tianzhu.identity.uaa.provider.saml.idp.IdpExtendedMetadata">
+        <property name="alias"
+            value="#{T(com.tianzhu.identity.uaa.util.UaaStringUtils).getHostIfArgIsURL(@samlIdpAlias)}" />
+        <property name="signMetadata" value="${login.saml.signMetaData:true}" />
+        <property name="assertionsSigned" value="${login.saml.idp.assertionSigned:true}" />
+        <property name="assertionTimeToLiveSeconds" value="${login.saml.idp.assertionTimeToLiveSeconds:600}" />
+    </bean>
+
+    <!--  Use same entity id as SP, if not explicitly configured. -->
+    <bean id="samlIdpAlias" class="java.lang.String">
+        <constructor-arg
+            value="${login.saml.idp.entityIDAlias:${login.idp.entityID:${login.saml.entityIDAlias:${login.entityID:unit-test-idp}}}}" />
+    </bean>
+
+    <bean id="samlIdpEntityID" class="java.lang.String">
+        <constructor-arg value="${login.idp.entityID:${login.entityID:unit-test-idp}}" />
+    </bean>
+
+    <bean id="spMetaDataProviders"
+        class="com.tianzhu.identity.uaa.provider.saml.idp.SamlServiceProviderConfigurator">
+        <property name="clientParams" ref="httpClientParams" />
+        <property name="parserPool" ref="parserPool"/>
+        <property name="contentCache" ref="urlCache"/>
+        <property name="providerProvisioning" ref="serviceProviderProvisioning" />
+
+    </bean>
+
+    <bean id="defaultSamlConfig" class="com.tianzhu.identity.uaa.provider.saml.SamlConfigurationBean">
+        <property name="signatureAlgorithm" value="${login.saml.signatureAlgorithm:SHA1}" />
+    </bean>
+</beans>
