@@ -12,7 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 import javax.servlet.Filter;
 
@@ -26,25 +28,28 @@ public class ResetPasswordSubmit extends WebSecurityConfigurerAdapter {
     AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
+    @Qualifier("loginEntryPoint")
+    AuthenticationEntryPoint loginEntryPoint;
 
     @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
+    @Qualifier("userManagementSecurityFilter")
+    Filter userManagementSecurityFilter;
 
     @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
+    @Qualifier("resetPasswordAuthenticationFilter")
+    Filter resetPasswordAuthenticationFilter;
+
+    @Autowired
+    @Qualifier("loginEntryPoint")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.antMatcher("/reset_password.do").
+                exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
+                .addFilterBefore(userManagementSecurityFilter, AnonymousAuthenticationFilter.class)
+                .addFilterAt(resetPasswordAuthenticationFilter, SwitchUserFilter.class)
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
     }
 
 

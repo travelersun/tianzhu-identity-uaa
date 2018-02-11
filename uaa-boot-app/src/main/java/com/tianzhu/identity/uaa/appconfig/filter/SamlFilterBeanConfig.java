@@ -9,6 +9,7 @@ import com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.saml.SAMLLogoutProcessingFilter;
 import org.springframework.security.saml.SAMLProcessingFilter;
@@ -27,6 +28,8 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+
+import java.util.List;
 
 @Configuration
 public class SamlFilterBeanConfig {
@@ -95,6 +98,7 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    @Primary
     public ZoneAwareMetadataDisplayFilter metadataDisplayFilter(@Qualifier("zoneAwareMetadataGenerator") MetadataGenerator generator,
                                                                 @Qualifier("metadata") MetadataManager manager,
                                                                 @Qualifier("basicContextProvider") SAMLContextProvider contextProvider,
@@ -127,9 +131,10 @@ public class SamlFilterBeanConfig {
 
     @Bean
     public UaaSamlLogoutFilter samlLogoutFilter(@Qualifier("logoutHandler") LogoutSuccessHandler logoutSuccessHandler,
-                                                @Qualifier("samlLogoutHandlers") LogoutHandler samlLogoutHandlers,
+                                                @Qualifier("uaaAuthenticationFailureHandler") LogoutHandler uaaAuthenticationFailureHandler,
+                                                @Qualifier("samlLogoutHandler") LogoutHandler samlLogoutHandler,
                                                 @Qualifier("redirectSavingSamlContextProvider") SAMLContextProvider contextProvider){
-        UaaSamlLogoutFilter samlLogoutFilter = new UaaSamlLogoutFilter(logoutSuccessHandler,samlLogoutHandlers);
+        UaaSamlLogoutFilter samlLogoutFilter = new UaaSamlLogoutFilter(logoutSuccessHandler,uaaAuthenticationFailureHandler,samlLogoutHandler);
         samlLogoutFilter.setContextProvider(contextProvider);
 
         return samlLogoutFilter;
@@ -137,9 +142,10 @@ public class SamlFilterBeanConfig {
 
     @Bean
     public SAMLLogoutProcessingFilter samlLogoutProcessingFilter(@Qualifier("samlWhitelistLogoutHandler") LogoutSuccessHandler logoutSuccessHandler,
-                                                                 @Qualifier("samlLogoutHandlers") LogoutHandler samlLogoutHandlers,
+                                                                 @Qualifier("uaaAuthenticationFailureHandler") LogoutHandler uaaAuthenticationFailureHandler,
+                                                                 @Qualifier("samlLogoutHandler") LogoutHandler samlLogoutHandler,
                                                                  @Qualifier("processor") SAMLProcessor processor){
-        SAMLLogoutProcessingFilter samlLogoutProcessingFilter = new SAMLLogoutProcessingFilter(logoutSuccessHandler,samlLogoutHandlers);
+        SAMLLogoutProcessingFilter samlLogoutProcessingFilter = new SAMLLogoutProcessingFilter(logoutSuccessHandler, uaaAuthenticationFailureHandler,samlLogoutHandler);
         samlLogoutProcessingFilter.setSAMLProcessor(processor);
 
         return samlLogoutProcessingFilter;

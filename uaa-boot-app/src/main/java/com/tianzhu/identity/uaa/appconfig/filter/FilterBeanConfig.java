@@ -51,12 +51,7 @@ public class FilterBeanConfig {
 
     }
 
-    @Bean
-    public OAuth2AuthenticationProcessingFilter oauth2TokenParseFilter(){
 
-        return new OAuth2AuthenticationProcessingFilter();
-
-    }
 
     @Bean
     public UTF8ConversionFilter utf8ConversionFilter(){
@@ -140,6 +135,13 @@ public class FilterBeanConfig {
         corsFilter.setCorsXhrMaxAge(corsXhrMaxAge);
 
         return corsFilter;
+
+    }
+
+    @Bean
+    public Class<?> oauth2TokenParseFilter() throws ClassNotFoundException {
+
+        return java.lang.Class.forName("org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter");
 
     }
 

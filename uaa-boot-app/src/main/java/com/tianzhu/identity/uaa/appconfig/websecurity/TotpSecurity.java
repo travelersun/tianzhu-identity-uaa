@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 
 import javax.servlet.Filter;
 
@@ -26,25 +27,25 @@ public class TotpSecurity extends WebSecurityConfigurerAdapter {
     AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
+    @Qualifier("loginEntryPoint")
+    AuthenticationEntryPoint loginEntryPoint;
+
 
     @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
-
-    @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
+    @Qualifier("loginEntryPoint")
     AccessDeniedHandler oauthAccessDeniedHandler;
+
+    @Autowired
+    @Qualifier("loginCookieCsrfRepository")
+    CsrfTokenRepository loginCookieCsrfRepository;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.antMatcher("/login/mfa/**").
+                exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").anonymous()
+                .and()
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().csrfTokenRepository(loginCookieCsrfRepository);
     }
 
 

@@ -4,6 +4,8 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,21 +32,28 @@ public class InvitationsEndpointSecurity extends WebSecurityConfigurerAdapter {
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
 
     @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
+    @Qualifier("resourceAgnosticAuthenticationFilter")
+    Filter resourceAgnosticAuthenticationFilter;
 
     @Autowired
     @Qualifier("oauthAccessDeniedHandler")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
+    @Autowired
+    @Qualifier("oauthWebExpressionHandler")
+    SecurityExpressionHandler oauthWebExpressionHandler;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
+        http.antMatcher("/invite_users/**").
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+                .authorizeRequests().antMatchers(HttpMethod.POST,"/**").access("#oauth2.hasAnyScope('scim.invite') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
+                .and()
+                .authorizeRequests().antMatchers("**").denyAll()
+                .and()
+                .addFilterAt(resourceAgnosticAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.authorizeRequests().expressionHandler(oauthWebExpressionHandler);
     }
 
 

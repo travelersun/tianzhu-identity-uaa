@@ -28,7 +28,7 @@
     </bean>
 
     <bean id="zoneAwareSamlSpKeyManager" class="com.tianzhu.identity.uaa.provider.saml.ZoneAwareKeyManager"
-          depends-on="identityZoneHolderInitializer"/>
+          depends-on="identityZoneHolderInitializer" primary="true"/>
 
     <bean id="identityProviderProvisioning"
           class="com.tianzhu.identity.uaa.provider.JdbcIdentityProviderProvisioning">

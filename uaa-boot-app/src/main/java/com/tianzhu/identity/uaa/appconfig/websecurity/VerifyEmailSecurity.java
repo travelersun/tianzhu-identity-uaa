@@ -26,25 +26,15 @@ public class VerifyEmailSecurity extends WebSecurityConfigurerAdapter {
     AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
-
-    @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
-
-    @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
-    AccessDeniedHandler oauthAccessDeniedHandler;
+    @Qualifier("loginEntryPoint")
+    AuthenticationEntryPoint loginEntryPoint;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.antMatcher("/verify_email").
+                exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
+                .authorizeRequests().antMatchers("/verify_email").anonymous()
+                .and().csrf().disable();
     }
 
 

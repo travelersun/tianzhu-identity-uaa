@@ -26,25 +26,16 @@ public class AcceptInvitationSecurity extends WebSecurityConfigurerAdapter {
     AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
+    @Qualifier("loginEntryPoint")
+    AuthenticationEntryPoint loginEntryPoint;
 
-    @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
-
-    @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
-    AccessDeniedHandler oauthAccessDeniedHandler;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.antMatcher("/invitations/accept").
+                exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").anonymous()
+                .and().csrf().disable();
     }
 
 

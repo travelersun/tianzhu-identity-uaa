@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -18,6 +19,8 @@ import javax.servlet.ServletException;
 @ImportResource({"classpath:spring/application-context.xml"})
 //@Order(Ordered.HIGHEST_PRECEDENCE)
 public class UaaBootConfig {
+
+
 
     /*@Bean
     public ServletContextInitializer initializer() {

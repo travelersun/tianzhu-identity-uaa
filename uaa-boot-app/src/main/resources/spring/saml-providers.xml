@@ -76,7 +76,7 @@
 
         <bean id="metadata" class="com.tianzhu.identity.uaa.provider.saml.NonSnarlMetadataManager"
               depends-on="idpBootstrap, metaDataProviders, identityZoneHolderInitializer"
-              destroy-method="destroy">
+              destroy-method="destroy" primary="true">
             <constructor-arg name="configurator" ref="metaDataProviders"/>
             <property name="refreshCheckInterval" value="${login.saml.metadataRefreshInterval:0}"/>
             <property name="keyManager" ref="zoneAwareSamlSpKeyManager"/>

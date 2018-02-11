@@ -4,6 +4,7 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 import javax.servlet.Filter;
@@ -30,21 +32,26 @@ public class InvitationsSecurity extends WebSecurityConfigurerAdapter {
     AuthenticationEntryPoint loginEntryPoint;
 
     @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
+    @Qualifier("acceptInvitationSecurityContextPersistenceFilter")
+    Filter acceptInvitationSecurityContextPersistenceFilter;
 
     @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
+    @Qualifier("loginEntryPoint")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/invitations/**").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        http.antMatcher("/invitations/**").exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
+                .authorizeRequests().antMatchers(HttpMethod.GET,"/invitations/accept").access("isFullyAuthenticated() or isAnonymous()")
+                .and()
+                .authorizeRequests().antMatchers(HttpMethod.POST,"/invitations/accept.do").access("hasAuthority('uaa.invited')")
+                .and()
+                .authorizeRequests().antMatchers(HttpMethod.POST,"/invitations/accept_enterprise.do").access("hasAuthority('uaa.invited')")
+                .and()
+                .authorizeRequests().antMatchers("/**").denyAll()
+                .and()
+                .addFilterBefore(acceptInvitationSecurityContextPersistenceFilter, ChannelProcessingFilter.class)
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
     }
 
 

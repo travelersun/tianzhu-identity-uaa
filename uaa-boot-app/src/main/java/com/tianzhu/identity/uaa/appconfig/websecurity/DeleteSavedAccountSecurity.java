@@ -22,35 +22,25 @@ import javax.servlet.Filter;
 public class DeleteSavedAccountSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
+    @Qualifier("clientAuthenticationManager")
+    AuthenticationManager clientAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
-
-    @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
-
-    @Autowired
-    @Qualifier("oauthAccessDeniedHandler")
-    AccessDeniedHandler oauthAccessDeniedHandler;
+    @Qualifier("basicAuthenticationEntryPoint")
+    AuthenticationEntryPoint basicAuthenticationEntryPoint;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
+        http.antMatcher("/delete_saved_account**").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+                exceptionHandling().authenticationEntryPoint(basicAuthenticationEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").anonymous();
     }
 
 
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
+        return clientAuthenticationManager;
     }
 
 }
