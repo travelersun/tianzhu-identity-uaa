@@ -91,7 +91,7 @@ public class LoginFilterBeanConfig {
         methods.add("POST");
         autologinAuthenticationFilter.setMethods(methods);
         autologinAuthenticationFilter.setSuccessHandler(successHandler);
-        return null;
+        return autologinAuthenticationFilter;
     }
 
 }
