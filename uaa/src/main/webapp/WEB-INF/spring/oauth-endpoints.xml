@@ -396,6 +396,10 @@
         <constructor-arg value="/login/callback" />
     </bean>
 
+    <bean id="xOauthCallbackRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/login/callback" />
+    </bean>
+
     <http name="xOauthCallbackEndpointSecurity" request-matcher-ref="xOauthCallbackRequestMatcher" entry-point-ref="loginEntryPoint"
           xmlns="http://www.springframework.org/schema/security" use-expressions="false">
         <intercept-url pattern="**" access="IS_AUTHENTICATED_FULLY"/>

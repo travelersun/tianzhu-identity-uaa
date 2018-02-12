@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -34,7 +35,7 @@ public class ServerSecurityFilterConfig {
     @Bean
     public LoginServerTokenEndpointFilter loginServerTokenEndpointAuthenticationFilter(@Qualifier("loginAuthenticationMgr") AuthenticationManager authenticationManager,
                                                                                        @Qualifier("authorizationRequestManager") OAuth2RequestFactory oAuth2RequestFactory,
-                                                                                       @Qualifier("addNewUserParameters") List<String> addNewUserParameters,
+                                                                                       @Qualifier("addNewUserParameters") List addNewUserParameters,
                                                                                        @Qualifier("authenticationDetailsSource") AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource){
 
         LoginServerTokenEndpointFilter loginServerTokenEndpointAuthenticationFilter = new LoginServerTokenEndpointFilter(authenticationManager,oAuth2RequestFactory,addNewUserParameters);
@@ -55,7 +56,7 @@ public class ServerSecurityFilterConfig {
 
     @Bean
     public AuthzAuthenticationFilter loginAuthenticationFilter(@Qualifier("loginAuthenticationMgr") AuthenticationManager authenticationManager,
-                                                               @Qualifier("addNewUserParameters") List<String> parameterNames){
+                                                               @Qualifier("addNewUserParameters") List parameterNames){
 
         AuthzAuthenticationFilter loginAuthenticationFilter = new AuthzAuthenticationFilter(authenticationManager);
         loginAuthenticationFilter.setParameterNames(parameterNames);
