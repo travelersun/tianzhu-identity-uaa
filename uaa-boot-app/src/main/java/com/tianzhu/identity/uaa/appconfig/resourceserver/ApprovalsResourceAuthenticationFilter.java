@@ -71,6 +71,9 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationEntryPoint(authenticationEntryPoint);
         // @formatter:on*/
+
+        //http.authorizeRequests().accessDecisionManager()
+
     }
 
 
