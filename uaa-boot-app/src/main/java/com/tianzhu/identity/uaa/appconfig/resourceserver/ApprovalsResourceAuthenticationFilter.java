@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 @EnableResourceServer
 public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
+
     @Autowired
     @Qualifier("tokenServices")
     UaaTokenServices tokenServices;
@@ -45,9 +46,34 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
                 .authorizeRequests().antMatchers("/**").access("scope=oauth.approvals")
                 //.and().addFilterAt(approvalsResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .and()
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
         //http.authorizeRequests().anyRequest().authenticated();
+
+        /*AuthenticationManager oauthAuthenticationManager = oauthAuthenticationManager(http);
+        resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
+        resourcesServerFilter.setAuthenticationEntryPoint(authenticationEntryPoint);
+        resourcesServerFilter.setAuthenticationManager(oauthAuthenticationManager);
+        if (eventPublisher != null) {
+            resourcesServerFilter.setAuthenticationEventPublisher(eventPublisher);
+        }
+        if (tokenExtractor != null) {
+            resourcesServerFilter.setTokenExtractor(tokenExtractor);
+        }
+        resourcesServerFilter = postProcess(resourcesServerFilter);
+        resourcesServerFilter.setStateless(stateless);
+
+        // @formatter:off
+        http
+                .authorizeRequests().expressionHandler(expressionHandler)
+                .and()
+                .addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
+                .authenticationEntryPoint(authenticationEntryPoint);
+        // @formatter:on*/
     }
+
+
 
 
 
