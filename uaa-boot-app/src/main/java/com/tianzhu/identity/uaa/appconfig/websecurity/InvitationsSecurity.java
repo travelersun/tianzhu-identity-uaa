@@ -24,9 +24,6 @@ import javax.servlet.Filter;
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class InvitationsSecurity extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
     @Qualifier("loginEntryPoint")
@@ -53,12 +50,6 @@ public class InvitationsSecurity extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(acceptInvitationSecurityContextPersistenceFilter, ChannelProcessingFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }

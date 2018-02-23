@@ -24,10 +24,6 @@ import javax.servlet.Filter;
 public class ForcePasswordChangeSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -49,10 +45,5 @@ public class ForcePasswordChangeSecurity extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().csrfTokenRepository(loginCookieCsrfRepository);
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

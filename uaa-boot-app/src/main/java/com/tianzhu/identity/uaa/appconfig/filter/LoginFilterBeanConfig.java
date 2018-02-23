@@ -13,14 +13,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.FilterChainProxy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.*;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.csrf.CsrfLogoutHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.Filter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -78,6 +83,18 @@ public class LoginFilterBeanConfig {
     public NoOpFilter samlFilter(){
 
         return new NoOpFilter();
+    }
+
+    @Bean
+    public FilterChainProxy samlIdpLoginFilter(@Qualifier("samlSecurityContextPersistenceFilter") Filter samlSecurityContextPersistenceFilter,@Qualifier("samlIdpWebSsoProcessingFilter") Filter samlIdpWebSsoProcessingFilter){
+
+        RequestMatcher requestMatcher = new AntPathRequestMatcher("/saml/idp/SSO/**");
+
+        SecurityFilterChain chain = new DefaultSecurityFilterChain(requestMatcher,samlSecurityContextPersistenceFilter,samlIdpWebSsoProcessingFilter);
+
+        FilterChainProxy samlIdpLoginFilter = new FilterChainProxy(chain);
+
+        return samlIdpLoginFilter;
     }
 
     @Bean

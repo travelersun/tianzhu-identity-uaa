@@ -161,6 +161,9 @@
         <constructor-arg value="#{@config['links']==null ? T(java.util.Collections).EMPTY_MAP : @config['links']}"/>
     </bean>
 
+    <!--apply the oauth client context -->
+    <oauth:client id="oauth2ClientFilter"/>
+
 
     <util:map id="notifications" key-type="com.tianzhu.identity.uaa.message.MessageType">
         <entry key="CREATE_ACCOUNT_CONFIRMATION">

@@ -23,9 +23,6 @@ import javax.servlet.Filter;
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class TotpSecurity extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
     @Qualifier("loginEntryPoint")
@@ -47,12 +44,6 @@ public class TotpSecurity extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers("/**").anonymous()
                 .and()
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().csrfTokenRepository(loginCookieCsrfRepository);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }

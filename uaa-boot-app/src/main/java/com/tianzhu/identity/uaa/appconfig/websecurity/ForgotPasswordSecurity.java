@@ -23,10 +23,6 @@ import javax.servlet.Filter;
 public class ForgotPasswordSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -42,12 +38,6 @@ public class ForgotPasswordSecurity extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers("/**").anonymous()
                 .and()
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }

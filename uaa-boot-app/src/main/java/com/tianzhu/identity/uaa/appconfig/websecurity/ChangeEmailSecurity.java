@@ -26,12 +26,18 @@ public class ChangeEmailSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
+    @Autowired
+    @Qualifier("loginEntryPoint")
+    AccessDeniedHandler accessDeniedHandler;
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/change_email**").
                 exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").fullyAuthenticated();
+                .authorizeRequests().antMatchers("/**").fullyAuthenticated()
+                .and().exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        ;
     }
 
 

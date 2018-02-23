@@ -23,10 +23,6 @@ import javax.servlet.Filter;
 public class ChangePasswordSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -39,15 +35,10 @@ public class ChangePasswordSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/change_password**").
                 exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").anonymous()
+                .authorizeRequests().antMatchers("/**").fullyAuthenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

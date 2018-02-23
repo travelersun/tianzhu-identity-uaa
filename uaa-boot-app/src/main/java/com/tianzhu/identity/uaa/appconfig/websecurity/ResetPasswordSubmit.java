@@ -25,10 +25,6 @@ import javax.servlet.Filter;
 public class ResetPasswordSubmit extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -51,12 +47,6 @@ public class ResetPasswordSubmit extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(userManagementSecurityFilter, AnonymousAuthenticationFilter.class)
                 .addFilterAt(resetPasswordAuthenticationFilter, SwitchUserFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }

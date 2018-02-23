@@ -23,10 +23,6 @@ import javax.servlet.Filter;
 public class VerifyUserSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -39,10 +35,5 @@ public class VerifyUserSecurity extends WebSecurityConfigurerAdapter {
                 .and().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

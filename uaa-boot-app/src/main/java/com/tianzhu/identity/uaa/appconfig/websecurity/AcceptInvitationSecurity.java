@@ -22,9 +22,6 @@ import javax.servlet.Filter;
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class AcceptInvitationSecurity extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
     @Qualifier("loginEntryPoint")
@@ -39,10 +36,5 @@ public class AcceptInvitationSecurity extends WebSecurityConfigurerAdapter {
                 .and().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

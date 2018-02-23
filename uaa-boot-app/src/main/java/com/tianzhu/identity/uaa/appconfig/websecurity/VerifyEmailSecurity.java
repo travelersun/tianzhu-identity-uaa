@@ -23,10 +23,6 @@ import javax.servlet.Filter;
 public class VerifyEmailSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
-
-    @Autowired
     @Qualifier("loginEntryPoint")
     AuthenticationEntryPoint loginEntryPoint;
 
@@ -36,12 +32,6 @@ public class VerifyEmailSecurity extends WebSecurityConfigurerAdapter {
                 exceptionHandling().authenticationEntryPoint(loginEntryPoint).and()
                 .authorizeRequests().antMatchers("/verify_email").anonymous()
                 .and().csrf().disable();
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }
