@@ -22,9 +22,9 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.Filter;
 
-@Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@Configuration
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterLoginServerPasswordEndpoints extends WebSecurityConfigurerAdapter {
 
     @Autowired

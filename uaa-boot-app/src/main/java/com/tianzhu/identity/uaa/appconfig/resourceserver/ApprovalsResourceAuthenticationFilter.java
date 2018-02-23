@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 @Configuration
 @EnableResourceServer
@@ -22,6 +25,10 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
     @Qualifier("oauthAuthenticationEntryPoint")
     OAuth2AuthenticationEntryPoint oauthAuthenticationEntryPoint;
 
+    @Autowired
+    @Qualifier("oauthAccessDeniedHandler")
+    AccessDeniedHandler oauthAccessDeniedHandler;
+
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
@@ -32,7 +39,14 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().anyRequest().authenticated();
+        http.antMatcher("/approvals/**").
+                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
+                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").access("scope=oauth.approvals")
+                //.and().addFilterAt(approvalsResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .and()
+                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+        //http.authorizeRequests().anyRequest().authenticated();
     }
 
 
