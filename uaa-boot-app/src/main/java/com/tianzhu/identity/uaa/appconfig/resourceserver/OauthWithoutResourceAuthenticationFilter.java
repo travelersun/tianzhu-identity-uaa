@@ -4,6 +4,7 @@ import com.tianzhu.identity.uaa.oauth.UaaTokenServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEn
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
+@Order(5)
 @Configuration
 @EnableResourceServer
 public class OauthWithoutResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
@@ -51,18 +53,6 @@ public class OauthWithoutResourceAuthenticationFilter extends ResourceServerConf
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
-        http.antMatcher("/oauth/clients/**").
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.GET,"/oauth/clients/**/meta").fullyAuthenticated()
-                .antMatchers(HttpMethod.DELETE,"/**").access("#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
-                .antMatchers(HttpMethod.POST,"/**").access("#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
-                .antMatchers(HttpMethod.PUT,"/**").access("#oauth2.hasAnyScope('clients.write','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
-                .antMatchers(HttpMethod.GET,"/**").access("#oauth2.hasAnyScope('clients.read','clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
-                .antMatchers("/**").denyAll()
-                .and()//.addFilterAt(oauthWithoutResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
 
         http.requestMatchers().antMatchers("/password_*").and().
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
@@ -78,6 +68,7 @@ public class OauthWithoutResourceAuthenticationFilter extends ResourceServerConf
                 .and()//.addFilterAt(oauthWithoutResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
 
+
         http.antMatcher("/oauth/clients/tx/**").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
@@ -87,6 +78,7 @@ public class OauthWithoutResourceAuthenticationFilter extends ResourceServerConf
                 .antMatchers(HttpMethod.PUT,"/**").access("#oauth2.hasAnyScope('clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
                 .and()//.addFilterBefore(oauthWithoutResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
+
 
         http.antMatcher("/oauth/clients/**").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().

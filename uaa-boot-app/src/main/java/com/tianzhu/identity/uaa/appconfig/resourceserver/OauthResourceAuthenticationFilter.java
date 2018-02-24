@@ -5,6 +5,7 @@ import com.tianzhu.identity.uaa.oauth.UaaTokenServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -20,6 +21,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.Filter;
 
+@Order(0)
 @Configuration
 @EnableResourceServer
 public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
@@ -31,6 +33,10 @@ public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerA
     @Autowired
     @Qualifier("loginAuthenticateRequestMatcher")
     RequestMatcher loginAuthenticateRequestMatcher;
+
+    @Autowired
+    @Qualifier("loginAuthorizeRequestMatcher")
+    RequestMatcher loginAuthorizeRequestMatcher;
 
     @Autowired
     @Qualifier("loginAuthorizeRequestMatcherOld")
@@ -89,13 +95,13 @@ public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerA
                 .and()//.addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class).addFilterAfter(oauthLoginScopeAuthenticatingFilter,AbstractPreAuthenticatedProcessingFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
 
-        http.requestMatcher(loginAuthorizeRequestMatcherOld).
+        http.requestMatcher(loginAuthorizeRequestMatcher).
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
                 .authorizeRequests().antMatchers("/**").fullyAuthenticated()
                 .and()
                 .addFilterAt(backwardsCompatibleScopeParameter, ChannelProcessingFilter.class)
-                //.addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAfter(oauthLoginScopeAuthenticatingFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
 
@@ -110,6 +116,18 @@ public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerA
                 .addFilterAt(loginClientParameterAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(loginServerTokenEndpointAuthenticationFilter, BasicAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+
+
+        http.requestMatcher(loginAuthorizeRequestMatcherOld).
+                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and().
+                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").fullyAuthenticated()
+                .and()
+                .addFilterAt(backwardsCompatibleScopeParameter, ChannelProcessingFilter.class)
+                //.addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+
 
         http.requestMatcher(loginAuthorizeRequestMatcherOld).
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and().
