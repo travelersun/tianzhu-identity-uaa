@@ -218,6 +218,7 @@
                 </bean>
                 <bean class="org.springframework.security.access.vote.RoleVoter" />
                 <bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+                <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
             </list>
         </constructor-arg>
     </bean>

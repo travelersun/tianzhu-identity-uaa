@@ -4,6 +4,8 @@ import com.tianzhu.identity.uaa.oauth.UaaTokenServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -19,6 +21,10 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
 
 
     @Autowired
+    @Qualifier("emptyAuthenticationManager")
+    AuthenticationManager emptyAuthenticationManager;
+
+    @Autowired
     @Qualifier("tokenServices")
     UaaTokenServices tokenServices;
 
@@ -30,11 +36,16 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
     @Qualifier("oauthAccessDeniedHandler")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
+    @Autowired
+    @Qualifier("accessDecisionManager")
+    AccessDecisionManager accessDecisionManager;
+
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
 
-        resources.tokenServices(tokenServices).resourceId("oauth").authenticationEntryPoint(oauthAuthenticationEntryPoint);
+
+        resources.authenticationManager(emptyAuthenticationManager).accessDeniedHandler(oauthAccessDeniedHandler).tokenServices(tokenServices).resourceId("oauth").authenticationEntryPoint(oauthAuthenticationEntryPoint);
 
     }
 
@@ -43,7 +54,7 @@ public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigu
         http.antMatcher("/approvals/**").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.approvals")
+                .authorizeRequests().accessDecisionManager(accessDecisionManager).antMatchers("/**").access("scope=oauth.approvals")
                 //.and().addFilterAt(approvalsResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .and()
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
