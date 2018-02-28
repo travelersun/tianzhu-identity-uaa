@@ -19,6 +19,7 @@ import com.tianzhu.identity.uaa.zone.IdentityZoneResolvingFilter;
 import com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
@@ -27,6 +28,7 @@ import org.springframework.security.saml.metadata.MetadataManager;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.Filter;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,10 +47,24 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration1(@Qualifier("backwardsCompatibleScopeParameter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public DisableIdTokenResponseTypeFilter disableIdTokenResponseFilter(@Value("${oauth.id_token.disable:false}") boolean idTokendisable){
 
         return new DisableIdTokenResponseTypeFilter(idTokendisable, Arrays.asList("/**/oauth/authorize","/oauth/authorize"));
 
+    }
+
+    @Bean
+    public FilterRegistrationBean registration2(@Qualifier("disableIdTokenResponseFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
 
@@ -56,6 +72,13 @@ public class FilterBeanConfig {
     @Bean
     public UTF8ConversionFilter utf8ConversionFilter(){
         return new UTF8ConversionFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean registration3(@Qualifier("utf8ConversionFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -139,6 +162,13 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration4(@Qualifier("uaacorsFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public Class<?> oauth2TokenParseFilter() throws ClassNotFoundException {
 
         return java.lang.Class.forName("org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter");
@@ -154,6 +184,13 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration5(@Qualifier("headerFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public UaaMetricsFilter metricsFilter(@Value("${metrics.enabled:true}") boolean enabled,@Value("${metrics.perRequestMetrics:false}") boolean perRequestMetrics) throws IOException {
 
         UaaMetricsFilter metricsFilter = new UaaMetricsFilter();
@@ -163,13 +200,34 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration6(@Qualifier("metricsFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public DisableUserManagementSecurityFilter userManagementSecurityFilter(@Qualifier("identityProviderProvisioning") IdentityProviderProvisioning identityProviderProvisioning){
         return new DisableUserManagementSecurityFilter(identityProviderProvisioning);
     }
 
     @Bean
+    public FilterRegistrationBean registration7(@Qualifier("userManagementSecurityFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public DisableInternalUserManagementFilter userManagementFilter(@Qualifier("identityProviderProvisioning") IdentityProviderProvisioning identityProviderProvisioning){
         return new DisableInternalUserManagementFilter(identityProviderProvisioning);
+    }
+
+    @Bean
+    public FilterRegistrationBean registration8(@Qualifier("userManagementFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -192,13 +250,34 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration9(@Qualifier("identityZoneResolvingFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public SessionResetFilter sessionResetFilter(@Qualifier("userDatabase") UaaUserDatabase userDatabase){
         return new SessionResetFilter(new DefaultRedirectStrategy(),"/login",userDatabase);
     }
 
     @Bean
+    public FilterRegistrationBean registration10(@Qualifier("sessionResetFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public IdentityZoneSwitchingFilter identityZoneSwitchingFilter(@Qualifier("identityZoneProvisioning") IdentityZoneProvisioning identityZoneProvisioning){
         return new IdentityZoneSwitchingFilter(identityZoneProvisioning);
+    }
+
+    @Bean
+    public FilterRegistrationBean registration11(@Qualifier("identityZoneSwitchingFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -222,10 +301,24 @@ public class FilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration12(@Qualifier("limitedModeUaaFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public UaaSavedRequestCache clientRedirectStateCache(@Qualifier("uiAuthorizeRequestMatcher") RequestMatcher requestMatcher){
         UaaSavedRequestCache clientRedirectStateCache = new UaaSavedRequestCache();
         clientRedirectStateCache.setRequestMatcher(requestMatcher);
         return clientRedirectStateCache;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration13(@Qualifier("clientRedirectStateCache") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -235,6 +328,13 @@ public class FilterBeanConfig {
         samlIDPDiscovery.setContextProvider(contextProvider);
         samlIDPDiscovery.setMetadata(metadata);
         return samlIDPDiscovery;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration14(@Qualifier("samlIDPDiscovery") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
 }

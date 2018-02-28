@@ -54,8 +54,8 @@ public class UaaFilterConfig {
         registration.addUrlPatterns("/*");
         //registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER+1);
         return registration;
-    }*/
-
+    }
+*/
     /*
     @Bean
     public Filter delegatingFilterProxy(){
@@ -79,5 +79,8 @@ public class UaaFilterConfig {
     @Autowired
     private BackwardsCompatibleScopeParsingFilter backwardsCompatibleScopeParameterFilter;
 */
+
+
+
 
 }

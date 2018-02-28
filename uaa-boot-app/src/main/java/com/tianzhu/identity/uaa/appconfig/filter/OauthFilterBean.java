@@ -7,6 +7,7 @@ import com.tianzhu.identity.uaa.provider.oauth.XOAuthAuthenticationFilter;
 import com.tianzhu.identity.uaa.provider.oauth.XOAuthAuthenticationManager;
 import com.tianzhu.identity.uaa.user.UaaUserDatabase;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.saml.SAMLProcessingFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
+import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
@@ -36,6 +38,13 @@ public class OauthFilterBean {
     }
 
     @Bean
+    public FilterRegistrationBean registration23(@Qualifier("passcodeAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public ClientBasicAuthenticationFilter clientAuthenticationFilter(@Qualifier("clientAuthenticationManager") AuthenticationManager authenticationManager,
                                                                       @Qualifier("basicAuthenticationEntryPoint") AuthenticationEntryPoint authenticationEntryPoint,
                                                                       @Qualifier("authenticationDetailsSource") AuthenticationDetailsSource<javax.servlet.http.HttpServletRequest, ?> authenticationDetailsSource,
@@ -49,6 +58,13 @@ public class OauthFilterBean {
     }
 
     @Bean
+    public FilterRegistrationBean registration24(@Qualifier("clientAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public ClientParametersAuthenticationFilter clientParameterAuthenticationFilter(@Qualifier("clientAuthenticationManager") AuthenticationManager authenticationManager,
                                                                       @Qualifier("basicAuthenticationEntryPoint") AuthenticationEntryPoint authenticationEntryPoint){
 
@@ -57,6 +73,13 @@ public class OauthFilterBean {
         clientParameterAuthenticationFilter.setAuthenticationEntryPoint(authenticationEntryPoint);
 
         return clientParameterAuthenticationFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration25(@Qualifier("clientParameterAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -76,6 +99,13 @@ public class OauthFilterBean {
     }
 
     @Bean
+    public FilterRegistrationBean registration26(@Qualifier("tokenEndpointAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public AuthzAuthenticationFilter authzAuthenticationFilter(@Qualifier("zoneAwareAuthzAuthenticationManager") AuthenticationManager authenticationManager ){
 
         AuthzAuthenticationFilter authzAuthenticationFilter = new AuthzAuthenticationFilter(authenticationManager);
@@ -86,12 +116,35 @@ public class OauthFilterBean {
     }
 
     @Bean
+    public FilterRegistrationBean registration27(@Qualifier("authzAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public XOAuthAuthenticationFilter xOauthCallbackAuthenticationFilter(@Qualifier("xOauthAuthenticationManager") XOAuthAuthenticationManager xOAuthAuthenticationManager,
                                                                          @Qualifier("accountSavingAuthenticationSuccessHandler") AccountSavingAuthenticationSuccessHandler successHandler){
 
         XOAuthAuthenticationFilter xOauthCallbackAuthenticationFilter = new XOAuthAuthenticationFilter(xOAuthAuthenticationManager,successHandler);
         return xOauthCallbackAuthenticationFilter;
 
+    }
+
+
+    @Bean
+    public FilterRegistrationBean registration28(@Qualifier("xOauthCallbackAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+
+    @Bean
+    public FilterRegistrationBean registration281(@Qualifier("oauth2ClientFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
 }

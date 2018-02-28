@@ -7,6 +7,7 @@ import com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataGenerator;
 import com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataGeneratorFilter;
 import com.tianzhu.identity.uaa.provider.saml.idp.IdpMetadataManager;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -29,6 +30,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
+import javax.servlet.Filter;
 import java.util.List;
 
 @Configuration
@@ -54,6 +56,13 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration29(@Qualifier("samlIdpWebSsoProcessingFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public IdpMetadataGeneratorFilter idpMetadataGeneratorFilter(@Qualifier("zoneAwareIdpMetadataGenerator") IdpMetadataGenerator generator,
                                                                  @Qualifier("idpMetadataDisplayFilter") MetadataDisplayFilter displayFilter,
                                                                  @Qualifier("idpMetadataManager") IdpMetadataManager manager){
@@ -62,6 +71,13 @@ public class SamlFilterBeanConfig {
         idpMetadataGeneratorFilter.setManager(manager);
 
         return idpMetadataGeneratorFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration30(@Qualifier("idpMetadataGeneratorFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -77,13 +93,41 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration31(@Qualifier("idpMetadataDisplayFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public SecurityContextPersistenceFilter samlSecurityContextPersistenceFilter(){
         return new SecurityContextPersistenceFilter();
     }
 
     @Bean
+    public FilterRegistrationBean registration32(@Qualifier("samlSecurityContextPersistenceFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public ExceptionTranslationFilter exceptionTranslationFilter(@Qualifier("samlEntryPoint") AuthenticationEntryPoint authenticationEntryPoint){
         return new ExceptionTranslationFilter(authenticationEntryPoint);
+    }
+
+    @Bean
+    public FilterRegistrationBean registration331(@Qualifier("samlEntryPoint") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration33(@Qualifier("exceptionTranslationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -98,6 +142,13 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration34(@Qualifier("metadataGeneratorFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     @Primary
     public ZoneAwareMetadataDisplayFilter metadataDisplayFilter(@Qualifier("zoneAwareMetadataGenerator") MetadataGenerator generator,
                                                                 @Qualifier("metadata") MetadataManager manager,
@@ -109,6 +160,13 @@ public class SamlFilterBeanConfig {
         metadataDisplayFilter.setKeyManager(keyManager);
 
         return metadataDisplayFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration35(@Qualifier("metadataDisplayFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -130,6 +188,13 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration36(@Qualifier("samlWebSSOProcessingFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public UaaSamlLogoutFilter samlLogoutFilter(@Qualifier("logoutHandler") LogoutSuccessHandler logoutSuccessHandler,
                                                 @Qualifier("uaaAuthenticationFailureHandler") LogoutHandler uaaAuthenticationFailureHandler,
                                                 @Qualifier("samlLogoutHandler") LogoutHandler samlLogoutHandler,
@@ -141,6 +206,13 @@ public class SamlFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration37(@Qualifier("samlLogoutFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public SAMLLogoutProcessingFilter samlLogoutProcessingFilter(@Qualifier("samlWhitelistLogoutHandler") LogoutSuccessHandler logoutSuccessHandler,
                                                                  @Qualifier("uaaAuthenticationFailureHandler") LogoutHandler uaaAuthenticationFailureHandler,
                                                                  @Qualifier("samlLogoutHandler") LogoutHandler samlLogoutHandler,
@@ -149,6 +221,13 @@ public class SamlFilterBeanConfig {
         samlLogoutProcessingFilter.setSAMLProcessor(processor);
 
         return samlLogoutProcessingFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration38(@Qualifier("samlLogoutProcessingFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
 }

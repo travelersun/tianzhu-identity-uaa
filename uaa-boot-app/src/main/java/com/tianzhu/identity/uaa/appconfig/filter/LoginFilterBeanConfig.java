@@ -9,6 +9,7 @@ import com.tianzhu.identity.uaa.login.AccountSavingAuthenticationSuccessHandler;
 import com.tianzhu.identity.uaa.security.web.HttpsHeaderFilter;
 import com.tianzhu.identity.uaa.web.NoOpFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,6 +44,13 @@ public class LoginFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration15(@Qualifier("acceptInvitationSecurityContextPersistenceFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public ResetPasswordAuthenticationFilter resetPasswordAuthenticationFilter(@Qualifier("resetPasswordService") ResetPasswordService service,
                                                                                @Qualifier("accountSavingAuthenticationSuccessHandler") AuthenticationSuccessHandler handler,
                                                                                @Qualifier("resetPasswordEntryPoint") AuthenticationEntryPoint entryPoint,
@@ -50,6 +58,13 @@ public class LoginFilterBeanConfig {
 
         ResetPasswordAuthenticationFilter resetPasswordAuthenticationFilter = new ResetPasswordAuthenticationFilter(service,handler,entryPoint,expiringCodeStore);
         return resetPasswordAuthenticationFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration16(@Qualifier("resetPasswordAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -68,9 +83,23 @@ public class LoginFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration17(@Qualifier("logoutFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public HttpsHeaderFilter httpsHeaderFilter(){
 
         return new HttpsHeaderFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean registration18(@Qualifier("httpsHeaderFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -80,9 +109,23 @@ public class LoginFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration19(@Qualifier("metadataGeneratorFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public NoOpFilter samlFilter(){
 
         return new NoOpFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean registration20(@Qualifier("samlFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -98,6 +141,13 @@ public class LoginFilterBeanConfig {
     }
 
     @Bean
+    public FilterRegistrationBean registration21(@Qualifier("samlIdpLoginFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public AuthzAuthenticationFilter autologinAuthenticationFilter(@Qualifier("autologinAuthenticationManager") AuthenticationManager authenticationManager,
                                                                    @Qualifier("accountSavingAuthenticationSuccessHandler") AccountSavingAuthenticationSuccessHandler successHandler){
 
@@ -109,6 +159,13 @@ public class LoginFilterBeanConfig {
         autologinAuthenticationFilter.setMethods(methods);
         autologinAuthenticationFilter.setSuccessHandler(successHandler);
         return autologinAuthenticationFilter;
+    }
+
+    @Bean
+    public FilterRegistrationBean registration22(@Qualifier("autologinAuthenticationFilter") Filter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
 }
