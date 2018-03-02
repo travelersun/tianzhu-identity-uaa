@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 
 import javax.servlet.Filter;
 
-//@Configuration
+@Configuration
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class ScimUsers extends WebSecurityConfigurerAdapter {

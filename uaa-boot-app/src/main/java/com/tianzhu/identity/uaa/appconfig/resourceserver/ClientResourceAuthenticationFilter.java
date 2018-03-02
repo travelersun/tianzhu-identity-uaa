@@ -11,8 +11,8 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
 
 @Order(60)
-@Configuration
-@EnableResourceServer
+//@Configuration
+//@EnableResourceServer
 public class ClientResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
     @Autowired

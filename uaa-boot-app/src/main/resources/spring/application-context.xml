@@ -55,6 +55,27 @@
     <import resource="classpath:spring/env.xml" />
     <import resource="classpath:spring/audit.xml" />
 
+<!--
+    <sec:http name="secFilterOpen01" pattern="/resources/**" security="none" />
+    <sec:http name="secFilterOpen02" pattern="/square-logo.png" security="none" />
+    <sec:http name="secFilterOpen03" pattern="/info" security="none" />
+    <sec:http name="secFilterOpen04" pattern="/password/**" security="none" />
+    <sec:http name="secFilterOpen05Healthz" pattern="/healthz/**" security="none" />
+    <sec:http name="secFilterOpen06" pattern="/saml/web/**" security="none" />
+    <sec:http name="secFilterOpen07" pattern="/vendor/**" security="none" />
+    &lt;!&ndash;<sec:http pattern="/login" security="none" />&ndash;&gt;
+    <sec:http name="secFilterOpen08" pattern="/error" security="none" />
+    <sec:http name="secFilterOpen11" pattern="/email_sent" security="none" />
+    <sec:http name="secFilterOpen12" pattern="/create_account*" security="none" />
+    <sec:http name="secFilterOpen13" pattern="/accounts/email_sent" security="none" />
+    <sec:http name="secFilterCsrfLandingPage14" pattern="/invalid_request" security="none" />
+    <sec:http name="secFilterOpen15" pattern="/saml_error" security="none" />
+    <sec:http name="secFilterOpen16" pattern="/favicon.ico" security="none" />
+    <sec:http name="secFilterOpen17" pattern="/oauth_error" security="none" />
+    <sec:http name="secFilterOpen18" pattern="/session" security="none" />
+    <sec:http name="secFilterWellKnownOpen19" pattern="/oauth/token/.well-known/openid-configuration" security="none" />
+    <sec:http name="secFilterWellKnownOpen20" pattern="/.well-known/openid-configuration" security="none" />-->
+
     <bean id="allowQueryStringForTokens" class="java.lang.Boolean">
         <constructor-arg value="${jwt.token.queryString.enabled:true}"/>
     </bean>

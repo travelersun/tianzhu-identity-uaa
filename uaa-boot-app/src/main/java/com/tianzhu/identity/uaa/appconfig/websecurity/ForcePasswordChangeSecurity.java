@@ -19,8 +19,8 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import javax.servlet.Filter;
 @Order(120)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class ForcePasswordChangeSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired

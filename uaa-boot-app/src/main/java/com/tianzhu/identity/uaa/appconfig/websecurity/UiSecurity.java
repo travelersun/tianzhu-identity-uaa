@@ -27,8 +27,8 @@ import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 @Order(140)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class UiSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired

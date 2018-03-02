@@ -35,4 +35,7 @@
         <entry key="org.springframework.jdbc.BadSqlGrammarException" value="BAD_REQUEST" />
     </util:map>
 
+    <oauth:resource-server id="approvalsResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="oauth" entry-point-ref="oauthAuthenticationEntryPoint" />
+
 </beans>

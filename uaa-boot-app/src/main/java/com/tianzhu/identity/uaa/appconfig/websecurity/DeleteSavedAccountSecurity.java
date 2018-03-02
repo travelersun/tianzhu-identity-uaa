@@ -18,8 +18,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 @Order(150)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class DeleteSavedAccountSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired

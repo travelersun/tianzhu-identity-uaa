@@ -18,8 +18,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 @Order(10)
-@Configuration
-@EnableResourceServer
+//@Configuration
+//@EnableResourceServer
 public class PasswordResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
     @Autowired

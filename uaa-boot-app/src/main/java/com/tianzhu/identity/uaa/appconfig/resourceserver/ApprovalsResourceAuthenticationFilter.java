@@ -17,8 +17,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 @Order(50)
-@Configuration
-@EnableResourceServer
+//@Configuration
+//@EnableResourceServer
 public class ApprovalsResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
 

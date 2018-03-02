@@ -128,6 +128,19 @@
         <constructor-arg value="${scim.userids_enabled:false}" />
     </bean>
 
+    <oauth:resource-server id="passwordResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="password" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <oauth:resource-server id="scimResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="scim" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <oauth:resource-server id="resourceAgnosticAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <!--TODO What is this resource-server actually guarding? -->
+    <oauth:resource-server id="idsResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
 
     <bean name="self" class="com.tianzhu.identity.uaa.security.IsSelfCheck">
         <constructor-arg name="tokenProvisioning" ref="revocableTokenProvisioning"/>

@@ -20,8 +20,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import javax.servlet.Filter;
 @Order(40)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterAutologin extends WebSecurityConfigurerAdapter {
 
     @Autowired

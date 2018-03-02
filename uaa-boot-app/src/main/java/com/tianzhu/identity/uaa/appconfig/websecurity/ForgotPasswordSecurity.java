@@ -18,8 +18,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 @Order(100)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class ForgotPasswordSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired

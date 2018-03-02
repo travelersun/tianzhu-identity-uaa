@@ -20,8 +20,8 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import javax.servlet.Filter;
 @Order(80)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class ResetPasswordSubmit extends WebSecurityConfigurerAdapter {
 
     @Autowired

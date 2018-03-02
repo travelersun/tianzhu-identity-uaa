@@ -27,8 +27,8 @@ import javax.servlet.Filter;
 
 @Order(185)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class OpenIdSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired

@@ -21,8 +21,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.Filter;
 @Order(20)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterAutologinAuthorize extends WebSecurityConfigurerAdapter {
 
 

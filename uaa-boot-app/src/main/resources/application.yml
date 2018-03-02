@@ -42,14 +42,18 @@ spring:
   mvc:
     servlet:
       load-on-startup: 1
+    static-path-pattern: /resources/**
   profiles:
     active: default
+  resources:
+    static-locations: classpath:/resources/
 security:
   ignored:
     - /login
   oauth2:
     resource:
       id: uaa
+      filter-order: 3
     client:
       client-id: login
       client-secret: ${LOGIN_SECRET:loginsecret}

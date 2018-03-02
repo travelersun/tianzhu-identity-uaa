@@ -22,8 +22,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.Filter;
 
 @Order(0)
-@Configuration
-@EnableResourceServer
+//@Configuration
+//@EnableResourceServer
 public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
     @Autowired
@@ -88,6 +88,8 @@ public class OauthResourceAuthenticationFilter extends ResourceServerConfigurerA
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
+
         http.requestMatcher(loginAuthenticateRequestMatcher).
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()

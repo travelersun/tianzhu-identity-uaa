@@ -20,8 +20,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 @Order(60)
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+//@EnableWebSecurity
+//@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class InvitationsSecurity extends WebSecurityConfigurerAdapter {
 
 

@@ -19,6 +19,9 @@
         http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
 
+    <oauth:resource-server id="clientResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="clients" entry-point-ref="oauthAuthenticationEntryPoint" />
+
     <bean id="caSimpleAttributeNameMapper" class="com.tianzhu.identity.uaa.resources.SimpleAttributeNameMapper">
         <constructor-arg name="paramsMap">
             <map key-type="java.lang.String" value-type="java.lang.String">

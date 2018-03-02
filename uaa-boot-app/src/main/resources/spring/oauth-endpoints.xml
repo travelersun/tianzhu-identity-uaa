@@ -298,6 +298,10 @@
                                   @config['jwt.token.claims.exclude']==null ? T(java.util.Collections).EMPTY_SET : @config['jwt.token.claims.exclude']}"/>
     </bean>
 
+
+    <oauth:resource-server id="oauthWithoutResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
     <bean id="defaultUserAuthorities" class="org.springframework.beans.factory.config.SetFactoryBean">
         <property name="sourceSet" value="#{@config['oauth']==null ? legacyDefaultUserAuthorities : @config['oauth']['user']==null ? legacyDefaultUserAuthorities: @config['oauth']['user']['authorities']}"/>
     </bean>

@@ -19,6 +19,7 @@ import com.tianzhu.identity.uaa.zone.IdentityZoneResolvingFilter;
 import com.tianzhu.identity.uaa.zone.IdentityZoneSwitchingFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,9 +48,12 @@ public class FilterBeanConfig {
     }
 
     @Bean
-    public FilterRegistrationBean registration1(@Qualifier("backwardsCompatibleScopeParameter") Filter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
-        registration.setEnabled(false);
+    public FilterRegistrationBean backwardsCompatibleScopeParameterRegistration() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(backwardsCompatibleScopeParameter());
+        registration.setName("backwardsCompatibleScopeParameter");
+        registration.addUrlPatterns("/*");
+        registration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER+1);
         return registration;
     }
 

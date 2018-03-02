@@ -17,8 +17,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 @Order(70)
-@Configuration
-@EnableResourceServer
+//@Configuration
+//@EnableResourceServer
 public class OpenidResourceAuthenticationFilter extends ResourceServerConfigurerAdapter {
 
     @Autowired
@@ -51,11 +51,13 @@ public class OpenidResourceAuthenticationFilter extends ResourceServerConfigurer
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
         http.antMatcher("/userinfo").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
                 .authorizeRequests().accessDecisionManager(accessDecisionManager).antMatchers("/**").access("scope=openid")
                 .and()//.addFilterAt(openidResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+
     }
 }

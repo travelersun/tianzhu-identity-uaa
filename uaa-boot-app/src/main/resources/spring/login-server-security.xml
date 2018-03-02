@@ -20,6 +20,24 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
 
+
+    <oauth:resource-server id="oauthResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           resource-id="oauth" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+<!--
+    <http name="secFilterLoginServerAuthenticate" request-matcher-ref="loginAuthenticateRequestMatcher" create-session="never" entry-point-ref="oauthAuthenticationEntryPoint"
+          authentication-manager-ref="loginAuthenticationMgr" xmlns="http://www.springframework.org/schema/security" use-expressions="false">
+        <intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY" />
+        <custom-filter ref="oauthResourceAuthenticationFilter" position="PRE_AUTH_FILTER" />
+        &lt;!&ndash; scope authentication filter configured with a scope authentication manager &ndash;&gt;
+        <custom-filter ref="oauthLoginScopeAuthenticatingFilter" after="PRE_AUTH_FILTER"/>
+        <anonymous enabled="false" />
+        <access-denied-handler ref="oauthAccessDeniedHandler" />
+        <csrf disabled="true"/>
+    </http>-->
+
+    <!--<sec:http name="secFilterAuthenticateOpen"  pattern="/authenticate/**" security="none" />-->
+
     <bean id="loginAuthenticateRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
         <constructor-arg value="/authenticate" />
         <property name="accept" value="application/json" />
