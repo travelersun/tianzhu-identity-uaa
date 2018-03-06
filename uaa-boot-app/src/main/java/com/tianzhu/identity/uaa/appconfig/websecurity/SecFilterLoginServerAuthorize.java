@@ -5,6 +5,7 @@ import com.tianzhu.identity.uaa.authentication.manager.LoginAuthenticationManage
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -19,6 +20,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.Filter;
 
 @Configuration
+@Order(12)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterLoginServerAuthorize extends WebSecurityConfigurerAdapter {
@@ -58,6 +60,8 @@ public class SecFilterLoginServerAuthorize extends WebSecurityConfigurerAdapter 
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+
         http.requestMatcher(loginAuthorizeRequestMatcher).
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
@@ -65,6 +69,7 @@ public class SecFilterLoginServerAuthorize extends WebSecurityConfigurerAdapter 
                 .and()
                 .addFilterAt(backwardsCompatibleScopeParameter, ChannelProcessingFilter.class)
                 .addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAfter(oauthLoginScopeAuthenticatingFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }

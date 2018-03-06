@@ -19,7 +19,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.Filter;
-@Order(30)
+@Order(45)
 @Configuration
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)

@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
-@Order(15)
+@Order(39)
 @Configuration
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)

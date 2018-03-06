@@ -4,6 +4,7 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,26 +13,41 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 import javax.servlet.Filter;
 
 @Configuration
+@Order(21)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class TokenEndpointSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
+    @Qualifier("clientAuthenticationManager")
+    AuthenticationManager clientAuthenticationManager;
 
     @Autowired
-    @Qualifier("oauthAuthenticationEntryPoint")
-    AuthenticationEntryPoint oauthAuthenticationEntryPoint;
+    @Qualifier("basicAuthenticationEntryPoint")
+    AuthenticationEntryPoint basicAuthenticationEntryPoint;
 
     @Autowired
-    @Qualifier("oauthResourceAuthenticationFilter")
-    Filter oauthResourceAuthenticationFilter;
+    @Qualifier("backwardsCompatibleScopeParameter")
+    Filter backwardsCompatibleScopeParameter;
+
+    @Autowired
+    @Qualifier("clientAuthenticationFilter")
+    Filter clientAuthenticationFilter;
+
+    @Autowired
+    @Qualifier("clientParameterAuthenticationFilter")
+    Filter clientParameterAuthenticationFilter;
+
+    @Autowired
+    @Qualifier("tokenEndpointAuthenticationFilter")
+    Filter tokenEndpointAuthenticationFilter;
 
     @Autowired
     @Qualifier("oauthAccessDeniedHandler")
@@ -39,18 +55,22 @@ public class TokenEndpointSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/email_*").
+        http.antMatcher("/oauth/token/**").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                exceptionHandling().authenticationEntryPoint(basicAuthenticationEntryPoint).and()
+                .authorizeRequests().antMatchers("/**").fullyAuthenticated()
+                .and()
+                .addFilterAt(backwardsCompatibleScopeParameter, ChannelProcessingFilter.class)
+                .addFilterAt(clientAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(clientParameterAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tokenEndpointAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }
 
 
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
+        return clientAuthenticationManager;
     }
 
 }

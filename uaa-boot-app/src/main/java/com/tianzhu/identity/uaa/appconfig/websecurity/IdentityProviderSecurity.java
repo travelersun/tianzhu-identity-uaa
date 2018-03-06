@@ -4,6 +4,7 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 
 @Configuration
+@Order(33)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class IdentityProviderSecurity extends WebSecurityConfigurerAdapter {
@@ -57,8 +59,7 @@ public class IdentityProviderSecurity extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET,"/**").access("#oauth2.hasScope('idps.read') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
                 .antMatchers("/**").denyAll()
                 .and().addFilterBefore(resourceAgnosticAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
-        http.authorizeRequests().expressionHandler(oauthWebExpressionHandler);
+                .csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
     }
 
 

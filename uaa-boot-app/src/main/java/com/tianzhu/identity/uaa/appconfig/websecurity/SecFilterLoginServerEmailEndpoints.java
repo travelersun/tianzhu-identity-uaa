@@ -5,6 +5,8 @@ import com.tianzhu.identity.uaa.authentication.manager.LoginAuthenticationManage
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -20,6 +22,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.Filter;
 
 @Configuration
+@Order(16)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterLoginServerEmailEndpoints extends WebSecurityConfigurerAdapter {
@@ -40,12 +43,17 @@ public class SecFilterLoginServerEmailEndpoints extends WebSecurityConfigurerAda
     @Qualifier("oauthAccessDeniedHandler")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
+
+    @Autowired
+    @Qualifier("accessDecisionManager")
+    AccessDecisionManager accessDecisionManager;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/email_*").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=oauth.login")
+                .authorizeRequests().accessDecisionManager(accessDecisionManager).antMatchers("/**").access("scope=oauth.login")
                 .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }

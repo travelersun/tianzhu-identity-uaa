@@ -4,6 +4,8 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +19,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 
 @Configuration
+@Order(42)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class UserInfoSecurity extends WebSecurityConfigurerAdapter {
@@ -37,12 +40,16 @@ public class UserInfoSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("oauthAccessDeniedHandler")
     AccessDeniedHandler oauthAccessDeniedHandler;
 
+    @Autowired
+    @Qualifier("accessDecisionManager")
+    AccessDecisionManager accessDecisionManager;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/userinfo").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests().antMatchers("/**").access("scope=openid")
+                .authorizeRequests().accessDecisionManager(accessDecisionManager).antMatchers("/**").access("scope=openid")
                 .and().addFilterAt(openidResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }

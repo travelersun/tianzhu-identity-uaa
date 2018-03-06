@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,6 +22,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.Filter;
 
 @Configuration
+@Order(10)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class SecFilterLoginServerAuthenticate extends WebSecurityConfigurerAdapter {
@@ -55,7 +57,9 @@ public class SecFilterLoginServerAuthenticate extends WebSecurityConfigurerAdapt
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
                 .authorizeRequests().antMatchers("/**").fullyAuthenticated()
-                .and().addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class).addFilterAfter(oauthLoginScopeAuthenticatingFilter,AbstractPreAuthenticatedProcessingFilter.class)
+                .and()
+                .addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAfter(oauthLoginScopeAuthenticatingFilter,AbstractPreAuthenticatedProcessingFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }
 

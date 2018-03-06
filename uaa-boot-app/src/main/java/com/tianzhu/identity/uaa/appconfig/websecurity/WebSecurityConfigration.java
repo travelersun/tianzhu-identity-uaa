@@ -23,15 +23,17 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.web.accept.ContentNegotiationStrategy;
-@Order(10)
+@Order(9)
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class WebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
+
+
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/resources/**","/vendor/**","/square-logo.png","/favicon.ico");
+        web.ignoring().antMatchers("/resources/**", "/vendor/**","/square-logo.png","/favicon.ico");
     }
 
     @Override

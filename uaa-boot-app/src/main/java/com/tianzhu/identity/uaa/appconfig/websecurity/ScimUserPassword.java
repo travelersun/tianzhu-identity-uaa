@@ -4,7 +4,9 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -19,6 +21,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 
 @Configuration
+@Order(28)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class ScimUserPassword extends WebSecurityConfigurerAdapter {
@@ -43,16 +46,22 @@ public class ScimUserPassword extends WebSecurityConfigurerAdapter {
     @Qualifier("oauthWebExpressionHandler")
     SecurityExpressionHandler oauthWebExpressionHandler;
 
+
+    @Autowired
+    @Qualifier("accessDecisionManager")
+    AccessDecisionManager accessDecisionManager;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/User*/*/password").
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 exceptionHandling().authenticationEntryPoint(oauthAuthenticationEntryPoint).and()
-                .authorizeRequests()
+                .authorizeRequests().accessDecisionManager(accessDecisionManager)
                 .antMatchers(HttpMethod.GET,"/**").access("IS_AUTHENTICATED_FULLY and scope=password.write")
                 .and().addFilterAt(passwordResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
-        http.authorizeRequests().expressionHandler(oauthWebExpressionHandler);
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable()
+                .authorizeRequests().expressionHandler(oauthWebExpressionHandler)
+        ;
     }
 
 

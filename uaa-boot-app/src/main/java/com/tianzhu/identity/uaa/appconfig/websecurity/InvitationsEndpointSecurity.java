@@ -4,6 +4,7 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,13 +20,10 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import javax.servlet.Filter;
 
 @Configuration
+@Order(61)
 //@EnableWebSecurity
 //@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class InvitationsEndpointSecurity extends WebSecurityConfigurerAdapter {
-
-    @Autowired
-    @Qualifier("emptyAuthenticationManager")
-    AuthenticationManager emptyAuthenticationManager;
 
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
@@ -52,14 +50,8 @@ public class InvitationsEndpointSecurity extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers("**").denyAll()
                 .and()
                 .addFilterAt(resourceAgnosticAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
-        http.authorizeRequests().expressionHandler(oauthWebExpressionHandler);
+                .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

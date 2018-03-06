@@ -57,5 +57,6 @@ public class IdsResourceAuthenticationFilter extends ResourceServerConfigurerAda
                 .authorizeRequests().accessDecisionManager(accessDecisionManager).antMatchers("/**").access("scope=scim.userids")
                 .and()
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
+
     }
 }
