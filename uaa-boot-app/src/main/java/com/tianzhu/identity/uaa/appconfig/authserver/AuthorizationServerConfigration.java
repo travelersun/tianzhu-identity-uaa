@@ -18,8 +18,8 @@ import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoi
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 
-@Configuration
-@EnableAuthorizationServer
+//@Configuration
+//@EnableAuthorizationServer
 public class AuthorizationServerConfigration extends AuthorizationServerConfigurerAdapter{
 
     @Autowired

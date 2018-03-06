@@ -2,8 +2,10 @@ package com.tianzhu.identity.uaa.appconfig.websecurity;
 
 
 import com.tianzhu.identity.uaa.authentication.ClientDetailsAuthenticationProvider;
+import com.tianzhu.identity.uaa.security.web.SecurityFilterChainPostProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -23,12 +25,17 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.web.accept.ContentNegotiationStrategy;
+
+import javax.servlet.Filter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 @Order(9)
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
-public class WebSecurityConfigration extends WebSecurityConfigurerAdapter {
-
+public class UaaWebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
 
     @Override

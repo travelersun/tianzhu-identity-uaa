@@ -16,11 +16,14 @@ package com.tianzhu.identity.uaa.security.web;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.RedirectUrlBuilder;
 import org.springframework.util.Assert;
@@ -92,6 +95,35 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
 
     public Map<Class<? extends Exception>, ReasonPhrase> getErrorMap() {
         return errorMap;
+    }
+
+
+    public <T> T postProcess(T object) {
+        if (object == null) {
+            return null;
+        } else {
+
+            if (object instanceof SecurityFilterChain ) {
+                logger.info("Processing security filter chain " + object);
+
+                SecurityFilterChain fc = (SecurityFilterChain) object;
+
+                Filter uaaFilter = new HttpsEnforcementFilter(""+object, false);
+                fc.getFilters().add(0, uaaFilter);
+                if (additionalFilters != null) {
+                    for (Entry<FilterPosition, Filter> entry : additionalFilters.entrySet()) {
+                        int position = entry.getKey().getPosition(fc);
+                        if (position > fc.getFilters().size()) {
+                            fc.getFilters().add(entry.getValue());
+                        } else {
+                            fc.getFilters().add(position,entry.getValue());
+                        }
+                    }
+                }
+            }
+
+            return object;
+        }
     }
 
     @Override
