@@ -13,6 +13,7 @@
 
 package com.tianzhu.identity.uaa.security.web;
 
+import com.tianzhu.identity.uaa.authentication.SessionResetFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -161,6 +162,7 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
 
             FilterChainProxy fcp = (FilterChainProxy) bean;
 
+
             List<SecurityFilterChain> sfcs = fcp.getFilterChains();
 
             for(SecurityFilterChain fc : sfcs){
@@ -182,6 +184,16 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
                         }
                     }
                 }
+
+                int inposse = fc.getFilters().indexOf(SessionResetFilter.class);
+
+                if(inposse > 0 && fc.getFilters().size() - 1 != inposse){
+                   Filter temfilter = fc.getFilters().get(inposse);
+                    fc.getFilters().remove(inposse);
+                    fc.getFilters().add(temfilter);
+                }
+
+
 
             }
         }
