@@ -24,7 +24,10 @@ import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.RedirectUrlBuilder;
 import org.springframework.util.Assert;
 
@@ -110,6 +113,7 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
 
                 Filter uaaFilter = new HttpsEnforcementFilter(""+object, false);
                 fc.getFilters().add(0, uaaFilter);
+
                 if (additionalFilters != null) {
                     for (Entry<FilterPosition, Filter> entry : additionalFilters.entrySet()) {
                         int position = entry.getKey().getPosition(fc);
@@ -120,6 +124,8 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
                         }
                     }
                 }
+
+
             }
 
             return object;
@@ -128,7 +134,7 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof SecurityFilterChain && !ignore.contains(beanName)) {
+        /*if (bean instanceof SecurityFilterChain && !ignore.contains(beanName)) {
             logger.info("Processing security filter chain " + beanName);
 
             SecurityFilterChain fc = (SecurityFilterChain) bean;
@@ -148,6 +154,40 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
         }
 
         return bean;
+        */
+
+        if (bean instanceof FilterChainProxy) {
+            logger.info("Processing security filter chain " + beanName);
+
+            FilterChainProxy fcp = (FilterChainProxy) bean;
+
+            List<SecurityFilterChain> sfcs = fcp.getFilterChains();
+
+            for(SecurityFilterChain fc : sfcs){
+                Filter uaaFilter = new HttpsEnforcementFilter(""+fc, false);
+
+                int inpos = fc.getFilters().indexOf(SecurityContextPersistenceFilter.class);
+
+                fc.getFilters().add(inpos>0?inpos:0, uaaFilter);
+
+                if (additionalFilters != null) {
+                    for (Entry<FilterPosition, Filter> entry : additionalFilters.entrySet()) {
+                        int position = entry.getKey().getPosition(fc);
+
+
+                        if (position > fc.getFilters().size()) {
+                            fc.getFilters().add(entry.getValue());
+                        } else {
+                            fc.getFilters().add(position,entry.getValue());
+                        }
+                    }
+                }
+
+            }
+        }
+
+        return bean;
+
     }
 
     @Override
@@ -352,10 +392,11 @@ public class SecurityFilterChainPostProcessor implements BeanPostProcessor {
             if (clazz!=null) {
                 int pos = 0;
                 for (Filter f : chain.getFilters()) {
+
                     if (clazz.equals(f.getClass())) {
                         index = pos;
                         break;
-                    } else {
+                    }else{
                         pos++;
                     }
                 }
