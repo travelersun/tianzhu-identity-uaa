@@ -60,6 +60,8 @@ security:
       client-secret: ${LOGIN_SECRET:loginsecret}
       grant-type: client_credentials
       access-token-uri: ${uaa.token.url:http://localhost:8080/uaa/oauth/token}
+  basic:
+    enabled: false
 
 # Configuration in this file ixs overridden by an external file
 # if any of these exist:
@@ -675,6 +677,9 @@ uaa:
         - GET
         - HEAD
         - OPTIONS
+management:
+  security:
+    enabled: false
 
 # Google Analytics
 #analytics:

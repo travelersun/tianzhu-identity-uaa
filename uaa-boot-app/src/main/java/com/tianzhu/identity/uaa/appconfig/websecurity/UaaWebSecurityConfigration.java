@@ -40,12 +40,13 @@ public class UaaWebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/resources/**", "/vendor/**","/square-logo.png","/favicon.ico");
-    }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/info",
+        web.ignoring().antMatchers(
+                "/resources/**",
+                "/vendor/**",
+                "/square-logo.png",
+                "/favicon.ico",
+                "/info",
                 "/password/**",
                 "/healthz/**",
                 "/saml/web/**",
@@ -58,8 +59,14 @@ public class UaaWebSecurityConfigration extends WebSecurityConfigurerAdapter {
                 "/oauth_error",
                 "/session",
                 "/oauth/token/.well-known/openid-configuration",
-                "/.well-known/openid-configuration",
-                "/authenticate/**").permitAll();
+                "/.well-known/openid-configuration"
+        );
+
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+
     }
 
     @Override
