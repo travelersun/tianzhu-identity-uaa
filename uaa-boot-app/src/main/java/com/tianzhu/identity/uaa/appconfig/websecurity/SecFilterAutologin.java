@@ -28,6 +28,11 @@ public class SecFilterAutologin extends WebSecurityConfigurerAdapter {
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;
@@ -50,10 +55,5 @@ public class SecFilterAutologin extends WebSecurityConfigurerAdapter {
                 .anonymous().disable().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

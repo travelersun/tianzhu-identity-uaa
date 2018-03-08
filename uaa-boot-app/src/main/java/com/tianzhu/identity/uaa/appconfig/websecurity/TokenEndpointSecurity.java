@@ -29,6 +29,11 @@ public class TokenEndpointSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("clientAuthenticationManager")
     AuthenticationManager clientAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return clientAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;

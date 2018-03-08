@@ -32,6 +32,11 @@ public class SecFilterLoginServerAuthorizeOld extends WebSecurityConfigurerAdapt
     @Qualifier("loginAuthenticationMgr")
     LoginAuthenticationManager loginAuthenticationMgr;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return loginAuthenticationMgr;
+    }
+
     @Autowired
     @Qualifier("loginAuthorizeRequestMatcherOld")
     RequestMatcher loginAuthorizeRequestMatcherOld;
@@ -68,12 +73,6 @@ public class SecFilterLoginServerAuthorizeOld extends WebSecurityConfigurerAdapt
                 .addFilterAt(oauthResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return loginAuthenticationMgr;
     }
 
 }

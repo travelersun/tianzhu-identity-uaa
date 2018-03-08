@@ -1,5 +1,6 @@
 package com.tianzhu.identity.uaa.appconfig;
 
+import com.tianzhu.identity.uaa.impl.config.EnvironmentMapFactoryBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,16 +23,9 @@ public class UaaBootConfig {
 
 
 
-    /*@Bean
-    public ServletContextInitializer initializer() {
-        return new ServletContextInitializer() {
-
-            @Override
-            public void onStartup(ServletContext servletContext) throws ServletException {
-
-                servletContext.setInitParameter("p-name", "-value");
-            }
-        };
-    }*/
+    @Bean
+    public EnvironmentMapFactoryBean config() {
+        return new EnvironmentMapFactoryBean();
+    }
 
 }

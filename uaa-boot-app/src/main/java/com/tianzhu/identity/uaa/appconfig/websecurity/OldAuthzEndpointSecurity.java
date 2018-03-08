@@ -30,6 +30,12 @@ public class OldAuthzEndpointSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("zoneAwareAuthzAuthenticationManager")
     AuthenticationManager zoneAwareAuthzAuthenticationManager;
 
+
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return zoneAwareAuthzAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
@@ -63,10 +69,5 @@ public class OldAuthzEndpointSecurity extends WebSecurityConfigurerAdapter {
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return zoneAwareAuthzAuthenticationManager;
-    }
 
 }

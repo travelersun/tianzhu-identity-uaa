@@ -33,6 +33,11 @@ public class SecFilterLoginServerPasswordEndpoints extends WebSecurityConfigurer
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
@@ -61,10 +66,5 @@ public class SecFilterLoginServerPasswordEndpoints extends WebSecurityConfigurer
         //http.authorizeRequests().expressionHandler(oauthWebExpressionHandler);
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

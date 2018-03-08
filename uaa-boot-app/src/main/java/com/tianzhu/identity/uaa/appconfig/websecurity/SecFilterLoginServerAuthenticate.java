@@ -32,6 +32,11 @@ public class SecFilterLoginServerAuthenticate extends WebSecurityConfigurerAdapt
     @Qualifier("loginAuthenticationMgr")
     LoginAuthenticationManager loginAuthenticationMgr;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return loginAuthenticationMgr;
+    }
+
     @Autowired
     @Qualifier("loginAuthenticateRequestMatcher")
     RequestMatcher loginAuthenticateRequestMatcher;
@@ -64,13 +69,6 @@ public class SecFilterLoginServerAuthenticate extends WebSecurityConfigurerAdapt
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
 
     }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return loginAuthenticationMgr;
-    }
-
 
 
 }

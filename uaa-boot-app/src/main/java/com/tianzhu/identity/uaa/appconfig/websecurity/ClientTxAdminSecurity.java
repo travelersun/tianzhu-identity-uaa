@@ -29,6 +29,11 @@ public class ClientTxAdminSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
@@ -56,12 +61,6 @@ public class ClientTxAdminSecurity extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PUT,"/**").access("#oauth2.hasAnyScope('clients.admin') or #oauth2.hasScopeInAuthZone('zones.{zone.id}.admin')")
                 .and()//.addFilterBefore(oauthWithoutResourceAuthenticationFilter, AbstractPreAuthenticatedProcessingFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
     }
 
 }

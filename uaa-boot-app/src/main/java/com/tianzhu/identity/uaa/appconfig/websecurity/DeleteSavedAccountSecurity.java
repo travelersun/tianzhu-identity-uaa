@@ -26,6 +26,11 @@ public class DeleteSavedAccountSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("clientAuthenticationManager")
     AuthenticationManager clientAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return clientAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;
@@ -39,9 +44,5 @@ public class DeleteSavedAccountSecurity extends WebSecurityConfigurerAdapter {
     }
 
 
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return clientAuthenticationManager;
-    }
 
 }

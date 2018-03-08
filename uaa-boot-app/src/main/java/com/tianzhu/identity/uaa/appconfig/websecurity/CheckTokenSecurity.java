@@ -27,6 +27,11 @@ public class CheckTokenSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("clientAuthenticationManager")
     AuthenticationManager clientAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return clientAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;
@@ -48,12 +53,6 @@ public class CheckTokenSecurity extends WebSecurityConfigurerAdapter {
                 .antMatchers("/**").access("hasAuthority('uaa.resource')")
                 .and().addFilterAt(clientAuthenticationFilter, BasicAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return clientAuthenticationManager;
     }
 
 }

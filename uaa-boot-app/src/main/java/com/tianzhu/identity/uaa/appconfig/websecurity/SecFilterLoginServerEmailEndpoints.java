@@ -31,6 +31,11 @@ public class SecFilterLoginServerEmailEndpoints extends WebSecurityConfigurerAda
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
@@ -58,10 +63,5 @@ public class SecFilterLoginServerEmailEndpoints extends WebSecurityConfigurerAda
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

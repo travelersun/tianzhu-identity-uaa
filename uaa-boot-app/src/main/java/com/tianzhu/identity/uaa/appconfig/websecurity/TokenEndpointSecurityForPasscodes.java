@@ -31,6 +31,11 @@ public class TokenEndpointSecurityForPasscodes extends WebSecurityConfigurerAdap
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;
@@ -73,10 +78,5 @@ public class TokenEndpointSecurityForPasscodes extends WebSecurityConfigurerAdap
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler).and().csrf().disable();
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }

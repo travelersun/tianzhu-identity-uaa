@@ -37,6 +37,14 @@ import java.util.Map;
 @EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
 public class UaaWebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    @Qualifier("emptyAuthenticationManager")
+    AuthenticationManager emptyAuthenticationManager;
+
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -66,12 +74,7 @@ public class UaaWebSecurityConfigration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
+        http.antMatcher("/tfyfdrs/**").authorizeRequests().anyRequest().fullyAuthenticated();
     }
 
-    @Override
-    @Bean(name={"emptyAuthenticationManager"})
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
 }

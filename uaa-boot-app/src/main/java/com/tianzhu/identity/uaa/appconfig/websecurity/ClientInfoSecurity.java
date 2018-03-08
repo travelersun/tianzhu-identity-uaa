@@ -27,6 +27,11 @@ public class ClientInfoSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("clientAuthenticationManager")
     AuthenticationManager clientAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return clientAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("basicAuthenticationEntryPoint")
     AuthenticationEntryPoint basicAuthenticationEntryPoint;
@@ -47,12 +52,6 @@ public class ClientInfoSecurity extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers("/**").fullyAuthenticated()
                 .and().addFilterAt(clientAuthenticationFilter, BasicAuthenticationFilter.class)
                 .anonymous().disable().exceptionHandling().accessDeniedHandler(oauthAccessDeniedHandler);
-    }
-
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return clientAuthenticationManager;
     }
 
 }

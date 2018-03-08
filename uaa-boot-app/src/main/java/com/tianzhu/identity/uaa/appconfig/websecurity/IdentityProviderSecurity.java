@@ -29,6 +29,11 @@ public class IdentityProviderSecurity extends WebSecurityConfigurerAdapter {
     @Qualifier("emptyAuthenticationManager")
     AuthenticationManager emptyAuthenticationManager;
 
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return emptyAuthenticationManager;
+    }
+
     @Autowired
     @Qualifier("oauthAuthenticationEntryPoint")
     AuthenticationEntryPoint oauthAuthenticationEntryPoint;
@@ -62,10 +67,5 @@ public class IdentityProviderSecurity extends WebSecurityConfigurerAdapter {
                 .csrf().disable().authorizeRequests().expressionHandler(oauthWebExpressionHandler);
     }
 
-
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return emptyAuthenticationManager;
-    }
 
 }
