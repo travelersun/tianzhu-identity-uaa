@@ -219,7 +219,7 @@
 
     <beans profile="default">
         <util:list id="defaultUsers">
-            <!--<value>sre@vmware.com|apassword|scim.write,scim.read,openid</value>-->
+            <value>sre@vmware.com|apassword|scim.write,scim.read,openid,uaa.admin,scim.read,zones.uaa.admin</value>
             <value>marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user</value>
             <value>testbootuser|password|testbootuser@test.org|Test|Bootstrap|uaa.user,scim.read</value>
         </util:list>
