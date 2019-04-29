@@ -53,7 +53,7 @@ public class HttpsIntegrationTest {
                 .tokenPath("/oauth/token");
     }
 
-    @Test
+    //@Test
     public void test_ignore_self_signed_cert_happy_path() throws Exception {
         test_self_signed_cert(true);
     }

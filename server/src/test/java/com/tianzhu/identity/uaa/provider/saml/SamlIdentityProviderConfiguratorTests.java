@@ -123,7 +123,7 @@ public class SamlIdentityProviderConfiguratorTests {
         configurator.validateSamlIdentityProviderDefinition(singleAdd);
     }
 
-    @Test
+    //@Test
     public void testGetEntityID() throws Exception {
         Timer t = new Timer();
         bootstrap.setIdentityProviders(BootstrapSamlIdentityProviderConfiguratorTests.parseYaml(BootstrapSamlIdentityProviderConfiguratorTests.sampleYaml));
