@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Cloud Foundry
+    Copyright (c) [2009-2014] Pivotal Software, Inc. All Rights Reserved.
+
+    This product is licensed to you under the Apache License, Version 2.0 (the "License").
+    You may not use this product except in compliance with the License.
+
+    This product includes a number of subcomponents with
+    separate copyright notices and license terms. Your use of these
+    subcomponents is subject to the terms and conditions of the
+    subcomponent's license, as noted in the LICENSE file.
+
+-->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+    xmlns:oauth="http://www.springframework.org/schema/security/oauth2" xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+    <bean id="oauth2RequestValidator" class="com.tianzhu.identity.uaa.oauth.UaaOauth2RequestValidator">
+        <property name="clientDetailsService" ref="jdbcClientDetailsService"/>
+    </bean>
+
+    <bean id="tokenEndpointPostProcessor" class="com.tianzhu.identity.uaa.security.web.TokenEndpointPostProcessor"/>
+
+    <oauth:authorization-server
+            client-details-service-ref="jdbcClientDetailsService"
+            token-services-ref="tokenServices" user-approval-handler-ref="userManagedApprovalHandler"
+            authorization-request-manager-ref="authorizationRequestManager" request-validator-ref="oauth2RequestValidator">
+        <oauth:authorization-code authorization-code-services-ref="authorizationCodeServices" />
+        <oauth:implicit />
+        <oauth:refresh-token />
+        <oauth:client-credentials />
+        <oauth:password authentication-manager-ref="compositeAuthenticationManager" />
+    </oauth:authorization-server>
+
+    <bean id="userTokenGranter" class="com.tianzhu.identity.uaa.oauth.token.UserTokenGranter">
+        <constructor-arg name="tokenServices" ref="tokenServices"/>
+        <constructor-arg name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <constructor-arg name="requestFactory" ref="authorizationRequestManager"/>
+        <constructor-arg name="tokenStore" ref="revocableTokenProvisioning"/>
+    </bean>
+
+    <bean id="addUserTokenGranter"
+          class="com.tianzhu.identity.uaa.oauth.token.AddTokenGranter">
+        <constructor-arg name="userTokenGranter" ref="userTokenGranter"/>
+        <constructor-arg name="compositeTokenGranter" ref="oauth2TokenGranter"/>
+    </bean>
+
+
+    <bean id="passcodeTokenMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/token" />
+        <property name="accept">
+            <list>
+                <value>application/json</value>
+                <value>application/x-www-form-urlencoded</value>
+            </list>
+        </property>
+        <property name="parameters">
+            <map>
+                <entry key="grant_type" value="password" />
+                <entry key="passcode" value="" />
+            </map>
+        </property>
+    </bean>
+
+
+    <bean id="hybridTokenGranterForAuthCodeGrant" class="com.tianzhu.identity.uaa.oauth.HybridTokenGranterForAuthorizationCode">
+        <constructor-arg index="0" ref="tokenServices"/>
+        <constructor-arg index="1" ref="jdbcClientDetailsService"/>
+        <constructor-arg index="2" ref="authorizationRequestManager"/>
+    </bean>
+
+    <bean id="oauthTokenApiRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/token" />
+        <property name="headers">
+            <map>
+                <entry key="Authorization" value="bearer "  />
+            </map>
+        </property>
+        <property name="parameters">
+            <map>
+                <entry key="response_type" value="token" />
+                <entry key="client_id" value="" />
+            </map>
+        </property>
+    </bean>
+
+
+
+    <bean id="compositeAuthenticationManager" class="com.tianzhu.identity.uaa.authentication.manager.CompositeAuthenticationManager" />
+
+
+
+
+    <bean id="jwtTokenGranter" class="com.tianzhu.identity.uaa.oauth.token.JwtTokenGranter">
+        <constructor-arg name="tokenServices" ref="tokenServices"/>
+        <constructor-arg name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <constructor-arg name="requestFactory" ref="authorizationRequestManager"/>
+    </bean>
+
+    <bean id="addJwtTokenGranter"
+          class="com.tianzhu.identity.uaa.oauth.token.AddTokenGranter">
+        <constructor-arg name="userTokenGranter" ref="jwtTokenGranter"/>
+        <constructor-arg name="compositeTokenGranter" ref="oauth2TokenGranter"/>
+    </bean>
+
+    <authentication-manager id="clientAuthenticationManager" xmlns="http://www.springframework.org/schema/security">
+        <authentication-provider ref="clientAuthenticationProvider"/>
+    </authentication-manager>
+
+    <bean id="clientAuthenticationProvider" class="com.tianzhu.identity.uaa.authentication.ClientDetailsAuthenticationProvider">
+        <constructor-arg name="userDetailsService" ref="clientDetailsUserService"/>
+        <constructor-arg name="encoder" ref="cachingPasswordEncoder"/>
+    </bean>
+
+    <bean id="clientAuthenticationPublisher" class="com.tianzhu.identity.uaa.client.ClientAuthenticationPublisher"/>
+
+    <aop:config proxy-target-class="true">
+        <aop:aspect ref="clientAuthenticationPublisher">
+            <aop:after-returning method="clientAuthenticationSuccess"
+                                 pointcut="execution(* *..ProviderManager+.authenticate(..)) and bean(clientAuthenticationManager)" returning="authentication" />
+            <aop:after-throwing method="clientAuthenticationFailure"
+                                pointcut="execution(* *..ProviderManager+.authenticate(..)) and args(authentication) and bean(clientAuthenticationManager)"
+                                throwing="ex" />
+        </aop:aspect>
+    </aop:config>
+
+
+
+    <bean id="clientDetailsUserService" class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+        <constructor-arg ref="jdbcClientDetailsService" />
+        <property name="passwordEncoder" ref="cachingPasswordEncoder" />
+    </bean>
+
+    <bean id="oauthAuthorizeRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/authorize" />
+        <property name="accept">
+            <list>
+                <value>application/json</value>
+                <value>application/x-www-form-urlencoded</value>
+            </list>
+        </property>
+        <property name="parameters">
+            <map>
+                <entry key="response_type" value="token" />
+                <entry key="source" value="credentials" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="oauthAuthorizeApiRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/authorize" />
+        <property name="headers">
+            <map>
+                <entry key="Authorization" value="bearer "  />
+            </map>
+        </property>
+        <property name="parameters">
+            <map>
+                <entry key="response_type" value="code" />
+                <entry key="client_id" value="" />
+            </map>
+        </property>
+    </bean>
+
+
+
+    <bean id="promptOauthAuthorizeApiRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/authorize" />
+        <property name="parameters">
+            <map>
+                <entry key="prompt" value="none" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="promptOauthAuthorizeEntryPoint" class="com.tianzhu.identity.uaa.oauth.AuthorizePromptNoneEntryPoint">
+        <constructor-arg name="failureHandler">
+            <bean class="com.tianzhu.identity.uaa.login.UaaAuthenticationFailureHandler">
+                <constructor-arg name="delegate">
+                    <null/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="clientDetailsService" ref="jdbcClientDetailsService"/>
+        <constructor-arg name="redirectResolver">
+            <bean class="org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver"/>
+        </constructor-arg>
+
+    </bean>
+
+    <bean id="xOauthAuthenticationManager" class="com.tianzhu.identity.uaa.provider.oauth.XOAuthAuthenticationManager">
+        <constructor-arg name="providerProvisioning" ref="xoauthProviderConfigurator"/>
+        <constructor-arg name="restTemplateFactory" ref="restTemplateFactory"/>
+        <property name="uaaTokenServices" ref="tokenServices"/>
+        <property name="userDatabase" ref="userDatabase"/>
+        <property name="externalMembershipManager" ref="externalGroupMembershipManager"/>
+    </bean>
+
+
+    <bean id="xOauthCallbackRequestMatcher" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/login/callback" />
+    </bean>
+
+
+    <bean id="oauthAuthorizeRequestMatcherOld" class="com.tianzhu.identity.uaa.security.web.UaaRequestMatcher">
+        <constructor-arg value="/oauth/authorize" />
+        <property name="accept">
+            <list>
+                <value>application/json</value>
+                <value>application/x-www-form-urlencoded</value>
+            </list>
+        </property>
+        <property name="parameters">
+            <map>
+                <entry key="response_type" value="token" />
+                <entry key="credentials" value="{" />
+            </map>
+        </property>
+    </bean>
+
+    <!-- End -->
+
+    <bean id="authorizationCodeServices" class="com.tianzhu.identity.uaa.oauth.UaaTokenStore">
+        <constructor-arg ref="dataSource" />
+    </bean>
+
+    <bean id="userApprovalHandler" class="com.tianzhu.identity.uaa.user.UaaUserApprovalHandler">
+        <!--<property name="tokenServices" ref="tokenServices" />-->
+        <!--TODO - set to true once we have persistent tokens -->
+        <property name="useTokenServices" value="false"/>
+        <property name="requestFactory" ref="authorizationRequestManager"/>
+        <property name="tokenServices" ref="tokenServices"/>
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+    </bean>
+
+    <bean id="userManagedApprovalHandler" class="com.tianzhu.identity.uaa.oauth.UserManagedAuthzApprovalHandler">
+        <property name="clientDetailsService" ref="clientDetailsService" />
+        <property name="approvalStore" ref="approvalStore" />
+    </bean>
+
+    <bean id="authorizationRequestManager" class="com.tianzhu.identity.uaa.oauth.UaaAuthorizationRequestManager">
+        <constructor-arg ref="jdbcClientDetailsService" />
+        <constructor-arg ref="userDatabase"/>
+        <constructor-arg ref="identityProviderProvisioning"/>
+    </bean>
+
+    <bean id="uaaTokenPolicy" class="com.tianzhu.identity.uaa.zone.TokenPolicy">
+        <constructor-arg name="accessTokenValidity" value="${jwt.token.policy.accessTokenValiditySeconds:#{globalTokenPolicy.getAccessTokenValidity()}}" />
+        <constructor-arg name="refreshTokenValidity" value="${jwt.token.policy.refreshTokenValiditySeconds:#{globalTokenPolicy.getRefreshTokenValidity()}}" />
+        <constructor-arg name="signingKeysMap" ref="signingKeysMap" />
+        <property name="activeKeyId" value="${jwt.token.policy.activeKeyId:#{null}}" />
+        <property name="jwtRevocable" value="${jwt.token.revocable:false}" />
+        <property name="refreshTokenFormat" value="${jwt.token.refresh.format:#{T(com.tianzhu.identity.uaa.oauth.token.TokenConstants.TokenFormat).JWT.getStringValue()}}" />
+        <property name="refreshTokenUnique" value="${jwt.token.refresh.unique:false}" />
+    </bean>
+
+    <bean id="legacyTokenKeyInitializer" class="org.springframework.beans.factory.config.MethodInvokingBean" lazy-init="false" depends-on="setUpBouncyCastle">
+        <property name="arguments">
+            <list>
+                <value type="java.lang.String">${jwt.token.signing-key:#{null}}</value>
+            </list>
+        </property>
+        <property name="staticMethod" value="com.tianzhu.identity.uaa.impl.config.LegacyTokenKey.setLegacySigningKey" />
+    </bean>
+
+    <bean id="signingKeysMap" class="java.util.HashMap">
+        <constructor-arg value="#{@config['jwt']==null ? T(java.util.Collections).EMPTY_MAP :
+                                                       @config['jwt.token']==null ? T(java.util.Collections).EMPTY_MAP :
+                                                       @config['jwt.token.policy']==null ? T(java.util.Collections).EMPTY_MAP :
+                                                       @config['jwt.token.policy.keys']==null ? T(java.util.Collections).EMPTY_MAP : @config['jwt.token.policy.keys']}" />
+    </bean>
+
+
+
+    <bean id="globalTokenPolicy" class="com.tianzhu.identity.uaa.zone.TokenPolicy">
+        <property name="accessTokenValidity" value="${jwt.token.policy.global.accessTokenValiditySeconds:43200}" />
+        <property name="refreshTokenValidity" value="${jwt.token.policy.global.refreshTokenValiditySeconds:2592000}" />
+    </bean>
+
+    <bean id="revocableTokenProvisioning" class="com.tianzhu.identity.uaa.oauth.token.JdbcRevocableTokenProvisioning">
+        <constructor-arg name="jdbcTemplate" ref="jdbcTemplate"/>
+        <constructor-arg name="limitSqlAdapter" ref="limitSqlAdapter"/>
+        <property name="maxExpirationRuntime" value="${delete.expirationRunTime:2500}"/>
+    </bean>
+
+    <bean id="tokenServices" class="com.tianzhu.identity.uaa.oauth.UaaTokenServices" primary="true">
+        <property name="clientDetailsService" ref="jdbcClientDetailsService" />
+        <property name="userDatabase" ref="userDatabase" />
+        <property name="issuer" value="${issuer.uri:http://localhost:8080/uaa}" />
+        <property name="approvalStore" ref="approvalStore" />
+        <property name="tokenPolicy" ref="globalTokenPolicy" />
+        <property name="excludedClaims" ref="excludedClaims"/>
+        <property name="tokenProvisioning" ref="revocableTokenProvisioning"/>
+        <property name="restrictRefreshGrant" value="${jwt.token.refresh.restrict_grant:false}"/>
+    </bean>
+
+    <bean id="excludedClaims" class="java.util.LinkedHashSet">
+        <constructor-arg type="java.util.Collection"
+                         value="#{@config['jwt']==null ? T(java.util.Collections).EMPTY_SET :
+                                  @config['jwt.token']==null ? T(java.util.Collections).EMPTY_SET :
+                                  @config['jwt.token.claims']==null ? T(java.util.Collections).EMPTY_SET :
+                                  @config['jwt.token.claims.exclude']==null ? T(java.util.Collections).EMPTY_SET : @config['jwt.token.claims.exclude']}"/>
+    </bean>
+
+
+    <oauth:resource-server id="oauthWithoutResourceAuthenticationFilter" token-services-ref="tokenServices"
+                           entry-point-ref="oauthAuthenticationEntryPoint" />
+
+    <bean id="defaultUserAuthorities" class="org.springframework.beans.factory.config.SetFactoryBean">
+        <property name="sourceSet" value="#{@config['oauth']==null ? legacyDefaultUserAuthorities : @config['oauth']['user']==null ? legacyDefaultUserAuthorities: @config['oauth']['user']['authorities']}"/>
+    </bean>
+
+    <util:set id="legacyDefaultUserAuthorities" set-class="java.util.HashSet">
+        <value>openid</value>
+        <value>scim.me</value>
+        <value>cloud_controller.read</value>
+        <value>cloud_controller.write</value>
+        <value>password.write</value>
+        <value>scim.userids</value>
+        <value>uaa.user</value>
+        <value>approvals.me</value>
+        <value>oauth.approvals</value>
+        <value>cloud_controller_service_permissions.read</value>
+    </util:set>
+
+    <bean id="userDatabase" class="com.tianzhu.identity.uaa.user.JdbcUaaUserDatabase">
+        <constructor-arg name="jdbcTemplate" ref="jdbcTemplate" />
+        <constructor-arg name="timeService" ref="timeService" />
+        <property name="caseInsensitive" ref="useCaseInsensitiveQueries"/>
+    </bean>
+
+    <bean id="userLockoutPolicy" class="com.tianzhu.identity.uaa.provider.LockoutPolicy">
+        <property name="lockoutAfterFailures"
+                  value="${authentication.policy.lockoutAfterFailures:#{defaultUserLockoutPolicy.getLockoutAfterFailures()}}"/>
+        <property name="countFailuresWithin"
+                  value="${authentication.policy.countFailuresWithinSeconds:#{defaultUserLockoutPolicy.getCountFailuresWithin()}}"/>
+        <property name="lockoutPeriodSeconds"
+                  value="${authentication.policy.lockoutPeriodSeconds:#{defaultUserLockoutPolicy.getLockoutPeriodSeconds()}}"/>
+    </bean>
+
+    <bean id="defaultUserLockoutPolicy" class="com.tianzhu.identity.uaa.provider.LockoutPolicy">
+        <property name="lockoutAfterFailures"
+                  value="${authentication.policy.global.lockoutAfterFailures:5}"/>
+        <property name="countFailuresWithin"
+                  value="${authentication.policy.global.countFailuresWithinSeconds:1200}"/>
+        <property name="lockoutPeriodSeconds"
+                  value="${authentication.policy.global.lockoutPeriodSeconds:300}"/>
+    </bean>
+
+    <bean id="defaultClientLockoutPolicy" class="com.tianzhu.identity.uaa.provider.LockoutPolicy">
+        <property name="lockoutAfterFailures"
+                  value="${authentication.policy.global.lockoutAfterFailures:-1}"/>
+        <property name="countFailuresWithin"
+                  value="${authentication.policy.global.countFailuresWithinSeconds:-1}"/>
+        <property name="lockoutPeriodSeconds"
+                  value="${authentication.policy.global.lockoutPeriodSeconds:-1}"/>
+    </bean>
+
+    <bean id="globalUserLockoutPolicyRetriever" class="com.tianzhu.identity.uaa.authentication.manager.UserLockoutPolicyRetriever">
+        <constructor-arg ref="identityProviderProvisioning"/>
+        <property name="defaultLockoutPolicy" ref="defaultUserLockoutPolicy" />
+    </bean>
+
+    <bean id="globalPeriodLockoutPolicy" class="com.tianzhu.identity.uaa.authentication.manager.PeriodLockoutPolicy">
+        <constructor-arg ref="globalUserLoginPolicy" />
+    </bean>
+
+    <bean id="globalUserLoginPolicy" class="com.tianzhu.identity.uaa.authentication.manager.CommonLoginPolicy">
+        <constructor-arg index="0" ref="jdbcAuditService"/>
+        <constructor-arg index="1" ref="globalUserLockoutPolicyRetriever"/>
+        <constructor-arg index="2" value="UserAuthenticationSuccess"/>
+        <constructor-arg index="3" value="UserAuthenticationFailure"/>
+        <constructor-arg index="4" ref="timeService" />
+        <constructor-arg index="5" value="true"/>
+    </bean>
+
+    <bean id="uaaUserDatabaseAuthenticationManager"
+          class="com.tianzhu.identity.uaa.authentication.manager.AuthzAuthenticationManager">
+        <constructor-arg ref="userDatabase"/>
+        <constructor-arg ref="bcryptPasswordEncoder"/>
+        <constructor-arg ref="identityProviderProvisioning"/>
+        <property name="accountLoginPolicy" ref="globalPeriodLockoutPolicy"/>
+        <property name="origin" value="uaa"/>
+        <property name="allowUnverifiedUsers" value="${allowUnverifiedUsers:true}"/>
+    </bean>
+
+    <bean id="uaaAuthenticationMgr" class="com.tianzhu.identity.uaa.authentication.manager.CheckIdpEnabledAuthenticationManager">
+        <constructor-arg name="delegate" ref="uaaUserDatabaseAuthenticationManager"/>
+        <constructor-arg name="origin" value="uaa"/>
+        <constructor-arg name="identityProviderProvisioning" ref="identityProviderProvisioning"/>
+    </bean>
+
+    <bean id="zoneAwareAuthzAuthenticationManager" class="com.tianzhu.identity.uaa.authentication.manager.DynamicZoneAwareAuthenticationManager"
+        destroy-method="destroy">
+        <constructor-arg name="internalUaaAuthenticationManager" ref="uaaAuthenticationMgr"/>
+        <constructor-arg name="provisioning" ref="identityProviderProvisioning"/>
+        <constructor-arg name="scimGroupExternalMembershipManager" ref="externalGroupMembershipManager"/>
+        <constructor-arg name="scimGroupProvisioning" ref="scimGroupProvisioning"/>
+        <constructor-arg name="ldapLoginAuthenticationManager" ref="ldapLoginAuthenticationMgr"/>
+    </bean>
+
+</beans>

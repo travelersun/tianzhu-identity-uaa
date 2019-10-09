@@ -72,7 +72,9 @@ security:
 #spring_profiles: ldap,default,hsqldb
 #spring_profiles: saml
 #spring_profiles: keystone,default,hsqldb
-spring_profiles: default
+spring_profiles: mysql,default
+#spring_profiles: default
+#spring_profiles: default-hsqldb
 #database:
 #  driverClassName: org.postgresql.Driver
 #  url: jdbc:postgresql:uaa
@@ -114,11 +116,11 @@ spring_profiles: default
 #create database uaa;
 #create user root with superuser password 'changeme';
 
-#database:
-#  driverClassName: org.mariadb.jdbc.Driver
-#  url: jdbc:mysql://localhost:3306/uaa
-#  username: root
-#  password: blabla
+database:
+  driverClassName: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://oracledb:3306/uaa
+  username: root
+  password: 123456
 
 #mysql commands that were run
 #create database uaa;

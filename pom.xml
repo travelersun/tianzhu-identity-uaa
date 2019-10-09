@@ -27,6 +27,7 @@
         <!--<module>uaa</module>-->
         <!--<module>uaa-app</module>-->
 	    <module>uaa-boot-app</module>
+        <module>uaa-cloud-app</module>
     </modules>
 
     <properties>
